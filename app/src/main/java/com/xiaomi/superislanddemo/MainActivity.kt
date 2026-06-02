@@ -1,209 +1,205 @@
 package com.xiaomi.superislanddemo
 
 import android.Manifest
-import android.content.ComponentName
-import android.content.Intent
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.text.TextUtils
-import android.util.Log
 import android.widget.Button
+import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 
-/**
- * 小米超级岛 Demo 主界面
- *
- * 功能：
- * - 发送各种场景的超级岛通知（打车、外卖、倒计时）
- * - 开启通知监听服务（微信消息桥接）
- * - 查看系统焦点通知支持状态
- */
 class MainActivity : AppCompatActivity() {
-
-    companion object {
-        private const val TAG = "MainActivity"
-        private const val REQUEST_NOTIFICATION_PERMISSION = 1001
-        private const val REQUEST_LISTENER_PERMISSION = 1002
-    }
 
     private lateinit var tvStatus: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
-        tvStatus = findViewById(R.id.tv_status)
-
-        // 初始化通知通道
-        SuperIslandNotifier.initChannel(this)
-
-        // 检查系统支持状态
-        updateStatus()
-
-        // 按钮绑定
-        findViewById<Button>(R.id.btn_taxi).setOnClickListener {
-            checkAndSend { SuperIslandNotifier.send(this, buildTaxiParams()) }
+        val scroll = ScrollView(this)
+        val layout = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(40, 40, 40, 40)
         }
 
-        findViewById<Button>(R.id.btn_delivery).setOnClickListener {
-            checkAndSend { SuperIslandNotifier.send(this, buildDeliveryParams()) }
+        // 标题
+        layout.addView(TextView(this).apply {
+            text = "🏝️ 超级岛诊断"
+            textSize = 22f
+            setTextColor(0xFFFFFFFF.toInt())
+        })
+
+        // 状态面板
+        tvStatus = TextView(this).apply {
+            textSize = 12f
+            setTextColor(0xFFAAAAAA.toInt())
+            typeface = android.graphics.Typeface.MONOSPACE
+            setPadding(20, 16, 20, 16)
+            setBackgroundColor(0xFF1A1A2E.toInt())
+        }
+        layout.addView(tvStatus)
+
+        // 按钮
+        fun addBtn(text: String, color: Int = 0xFFE94560.toInt(), onClick: () -> Unit) {
+            layout.addView(Button(this).apply {
+                this.text = text
+                textSize = 14f
+                setTextColor(0xFFFFFFFF.toInt())
+                setBackgroundColor(color)
+                setOnClickListener { onClick() }
+            })
         }
 
-        findViewById<Button>(R.id.btn_timer).setOnClickListener {
-            checkAndSend { SuperIslandNotifier.send(this, buildTimerParams()) }
-        }
+        addBtn("🩺 刷新诊断") { updateDiagnostics() }
+        addBtn("🚗 发送 OS3 超级岛 — 打车") { sendTaxi() }
+        addBtn("🛵 发送 OS3 超级岛 — 外卖") { sendDelivery() }
+        addBtn("⏱ 发送 OS3 超级岛 — 倒计时") { sendTimer() }
+        addBtn("📱 发送最简 OS3 岛通知") { sendMinimal() }
+        addBtn("❌ 清除所有通知") { clearAll() }
 
-        findViewById<Button>(R.id.btn_cancel_all).setOnClickListener {
-            // 取消方法：发送 cancel=true 的通知
-            val params = SuperIslandNotifier.IslandParams().apply {
-                business = "cancel"
-                timeout = -1  // 5秒消失
-                islandTimeout = 3
-                focusTitle = "通知已清除"
-            }
-            SuperIslandNotifier.send(this, params)
-            Toast.makeText(this, "已发送清除通知", Toast.LENGTH_SHORT).show()
-        }
+        scroll.addView(layout)
+        setContentView(scroll)
 
-        findViewById<Button>(R.id.btn_open_listener).setOnClickListener {
-            openNotificationListenerSettings()
-        }
-
-        findViewById<Button>(R.id.btn_test_bridge).setOnClickListener {
-            // 模拟一条微信通知桥接
-            BridgeNotifier.show(
-                context = this,
-                sender = "小明",
-                message = "今晚一起吃饭吗？",
-                sourcePackage = "com.tencent.mm"
-            )
-            Toast.makeText(this, "已模拟桥接通知", Toast.LENGTH_SHORT).show()
-        }
-
-        // Android 13+ 请求通知权限
+        // 通知权限
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                    REQUEST_NOTIFICATION_PERMISSION
-                )
-            }
-        }
-    }
-
-    private fun checkAndSend(send: () -> Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
-            != PackageManager.PERMISSION_GRANTED
-        ) {
-            Toast.makeText(this, "请先授予通知权限", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        // 检查焦点通知权限
-        if (!hasFocusPermission()) {
-            Toast.makeText(this, "焦点通知权限未开启", Toast.LENGTH_SHORT).show()
-        }
-
-        send()
-        Toast.makeText(this, "超级岛通知已发送", Toast.LENGTH_SHORT).show()
-    }
-
-    /**
-     * 检测焦点通知权限
-     */
-    private fun hasFocusPermission(): Boolean {
-        return try {
-            val uri = android.net.Uri.parse("content://miui.statusbar.notification.public")
-            val extras = Bundle().apply {
-                putString("package", packageName)
-            }
-            val bundle = contentResolver.call(uri, "canShowFocus", null, extras)
-            bundle?.getBoolean("canShowFocus", false) ?: false
-        } catch (e: Exception) {
-            Log.e(TAG, "检测焦点通知权限失败", e)
-            false
-        }
-    }
-
-    /**
-     * 检测岛支持状态
-     */
-    private fun isSupportIsland(): Boolean {
-        return try {
-            val clazz = Class.forName("android.os.SystemProperties")
-            val method = clazz.getDeclaredMethod("getBoolean", String::class.java, Boolean::class.java)
-            val result = method.invoke(null, "persist.sys.feature.island", false)
-            result as? Boolean ?: false
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-    /**
-     * 获取焦点通知协议版本
-     */
-    private fun getFocusProtocolVersion(): Int {
-        return try {
-            android.provider.Settings.System.getInt(
-                contentResolver,
-                "notification_focus_protocol",
-                0
+            ActivityCompat.requestPermissions(
+                this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001
             )
-        } catch (e: Exception) {
-            0
         }
-    }
-
-    private fun updateStatus() {
-        val sb = StringBuilder()
-        sb.appendLine("=== 系统状态检查 ===")
-        sb.append("支持岛（OS3）: ").appendLine(if (isSupportIsland()) "✅" else "❌")
-        sb.append("焦点协议版本: ").appendLine(getFocusProtocolVersion())
-            .appendLine("  (1=OS1, 2=OS2, 3=OS3)")
-        sb.append("焦点通知权限: ").appendLine(if (hasFocusPermission()) "✅ 已开启" else "❌ 未开启")
-        sb.append("通知监听服务: ").appendLine(
-            if (isNotificationListenerEnabled()) "✅ 已授权" else "❌ 未授权"
-        )
-        sb.appendLine("==========================")
-        if (!isSupportIsland()) {
-            sb.appendLine("⚠️ 当前设备不支持超级岛（需要 HyperOS 3+）")
-            sb.appendLine("   焦点通知可在 OS2/OS3 上显示")
-        }
-        tvStatus.text = sb.toString()
-    }
-
-    /**
-     * 检查通知监听服务是否已授权
-     */
-    private fun isNotificationListenerEnabled(): Boolean {
-        val flat = Settings.Secure.getString(
-            contentResolver,
-            "enabled_notification_listeners"
-        )
-        if (flat.isNullOrBlank()) return false
-        val componentName = ComponentName(this, WeChatNotificationBridge::class.java).flattenToString()
-        return flat.split(":").any { it == componentName || it == componentName }
-    }
-
-    /**
-     * 打开通知使用权设置页面
-     */
-    private fun openNotificationListenerSettings() {
-        startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
     }
 
     override fun onResume() {
         super.onResume()
-        updateStatus()
+        updateDiagnostics()
+    }
+
+    private fun updateDiagnostics() {
+        val sb = StringBuilder()
+        sb.appendLine("═══════════════════════")
+        sb.appendLine("      设备诊断报告")
+        sb.appendLine("═══════════════════════")
+        sb.append("Android: ").appendLine(Build.VERSION.RELEASE)
+        sb.append("SDK: ").appendLine(Build.VERSION.SDK_INT.toString())
+        sb.append("厂商: ").appendLine(Build.MANUFACTURER)
+        sb.append("型号: ").appendLine(Build.MODEL)
+        sb.append("HyperOS: ").appendLine(isHyperOS().toString())
+        sb.appendLine("---")
+        sb.append("岛支持: ").appendLine(if (checkIslandSupport()) "✅ OS3" else "❌")
+        sb.append("焦点协议: v").appendLine(getFocusProtocol().toString())
+        sb.append("焦点权限: ").appendLine(if (checkFocusPermission()) "✅" else "❌ 需小米平台审批")
+        sb.appendLine("---")
+        sb.append("通知权限: ").appendLine(if (hasNotifyPermission()) "✅" else "❌")
+        sb.append("通知监听: ").appendLine(if (isListenerEnabled()) "✅" else "❌")
+        sb.appendLine("═══════════════════════")
+
+        if (!checkIslandSupport()) {
+            sb.appendLine("⚠️ 此设备不支持超级岛")
+            sb.appendLine("需要 HyperOS 3 + 岛功能")
+        } else if (!checkFocusPermission()) {
+            sb.appendLine("⚠️ 无焦点通知权限")
+            sb.appendLine("即使设备支持，没权限也出不来")
+            sb.appendLine("需在小米开放平台审批通过")
+        } else {
+            sb.appendLine("✅ 条件满足，点击下方按钮测试")
+        }
+        tvStatus.text = sb.toString()
+    }
+
+    private fun isHyperOS(): Boolean {
+        return try {
+            Class.forName("android.os.SystemProperties")
+                .getMethod("get", String::class.java, String::class.java)
+                .invoke(null, "ro.miui.ui.version.name", "")?.toString()?.isNotEmpty() == true
+        } catch (e: Exception) { false }
+    }
+
+    private fun checkIslandSupport(): Boolean {
+        return try {
+            val c = Class.forName("android.os.SystemProperties")
+            val m = c.getMethod("getBoolean", String::class.java, Boolean::class.javaPrimitiveType)
+            m.invoke(null, "persist.sys.feature.island", false) as? Boolean ?: false
+        } catch (e: Exception) { false }
+    }
+
+    private fun getFocusProtocol(): Int {
+        return try {
+            Settings.System.getInt(contentResolver, "notification_focus_protocol", 0)
+        } catch (e: Exception) { 0 }
+    }
+
+    private fun checkFocusPermission(): Boolean {
+        return try {
+            val uri = Uri.parse("content://miui.statusbar.notification.public")
+            val b = Bundle().apply { putString("package", packageName) }
+            contentResolver.call(uri, "canShowFocus", null, b)
+                ?.getBoolean("canShowFocus", false) ?: false
+        } catch (e: Exception) { false }
+    }
+
+    private fun hasNotifyPermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+        else true
+    }
+
+    private fun isListenerEnabled(): Boolean {
+        val flat = Settings.Secure.getString(contentResolver, "enabled_notification_listeners") ?: return false
+        return flat.contains("WeChatNotificationBridge")
+    }
+
+    private fun ensureChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val nm = getSystemService(NotificationManager::class.java)
+            if (nm.getNotificationChannel("island") == null) {
+                nm.createNotificationChannel(NotificationChannel(
+                    "island", "超级岛通知",
+                    NotificationManager.IMPORTANCE_HIGH
+                ).apply {
+                    description = "OS3 超级岛通知通道"
+                    setShowBadge(true)
+                    enableVibration(false)
+                })
+            }
+        }
+    }
+
+    private fun sendTaxi() {
+        ensureChannel()
+        toast("已发送 OS3 超级岛 — 打车")
+        Os3Notifier.sendTaxi(this)
+    }
+
+    private fun sendDelivery() {
+        ensureChannel()
+        toast("已发送 OS3 超级岛 — 外卖")
+        Os3Notifier.sendDelivery(this)
+    }
+
+    private fun sendTimer() {
+        ensureChannel()
+        toast("已发送 OS3 超级岛 — 倒计时")
+        Os3Notifier.sendTimer(this)
+    }
+
+    private fun sendMinimal() {
+        ensureChannel()
+        toast("已发送最简 OS3 岛通知")
+        Os3Notifier.sendMinimal(this)
+    }
+
+    private fun clearAll() {
+        getSystemService(NotificationManager::class.java).cancelAll()
+        toast("已清除")
+    }
+
+    private fun toast(msg: String) {
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 }
