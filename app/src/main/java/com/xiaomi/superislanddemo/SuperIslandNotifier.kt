@@ -71,11 +71,8 @@ object SuperIslandNotifier {
 
         // 3. 构建 Action Bundle
         val actionsBundle = Bundle()
-        params.actions.forEach { (key, resId, title, intent) ->
-            val pendingIntent = PendingIntent.getBroadcast(
-                context, key.hashCode(), intent,
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-            )
+        params.actions.forEach { (key, triple) ->
+            val (resId, title, pendingIntent) = triple
             val action = Notification.Action.Builder(
                 Icon.createWithResource(context, resId), title, pendingIntent
             ).build()
@@ -156,7 +153,7 @@ object SuperIslandNotifier {
         val pics: MutableMap<String, Int> = mutableMapOf()
 
         // === Action 映射（key → Triple(resId, title, intent)）===
-        val actions: MutableMap<String, Triple<Int, String, Intent>> = mutableMapOf()
+        val actions: MutableMap<String, Triple<Int, String, PendingIntent>> = mutableMapOf()
 
         fun toJson(): String {
             val root = JSONObject()

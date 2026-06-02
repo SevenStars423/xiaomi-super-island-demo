@@ -20,12 +20,28 @@ class SuperIslandActionReceiver : BroadcastReceiver() {
 
     companion object {
         private const val TAG = "SuperIslandAction"
-        
-        // 自定义 Action 常量
+
         const val ACTION_OPEN_APP = "com.xiaomi.superislanddemo.OPEN_APP"
         const val ACTION_CANCEL = "com.xiaomi.superislanddemo.CANCEL_ORDER"
         const val ACTION_CONFIRM = "com.xiaomi.superislanddemo.CONFIRM"
         const val ACTION_NAVIGATE = "com.xiaomi.superislanddemo.NAVIGATE"
+
+        /**
+         * 构建用于超级岛的 PendingIntent
+         */
+        fun buildPendingIntent(context: Context, action: String, extras: Bundle? = null): PendingIntent {
+            val intent = Intent(context, SuperIslandActionReceiver::class.java).apply {
+                this.action = action
+                addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
+                extras?.let { putExtras(it) }
+            }
+            return PendingIntent.getBroadcast(
+                context,
+                action.hashCode(),
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
+        }
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -73,22 +89,5 @@ class SuperIslandActionReceiver : BroadcastReceiver() {
                 context.startActivity(launchIntent)
             }
         }
-    }
-
-    /**
-     * 构建用于超级岛的 PendingIntent
-     */
-    fun buildPendingIntent(context: Context, action: String, extras: Bundle? = null): PendingIntent {
-        val intent = Intent(context, SuperIslandActionReceiver::class.java).apply {
-            this.action = action
-            addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
-            extras?.let { putExtras(it) }
-        }
-        return PendingIntent.getBroadcast(
-            context,
-            action.hashCode(),
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
     }
 }
