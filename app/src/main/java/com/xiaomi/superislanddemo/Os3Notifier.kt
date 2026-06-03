@@ -32,17 +32,28 @@ object Os3Notifier {
         val pi = PendingIntent.getActivity(ctx, 0, intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
 
+        // 通知 id：用业务名 hash 确保可更新
+        val notifId = JSONObject(json)
+            .getJSONObject("param_v2")
+            .optString("business", "island")
+            .hashCode()
+
         val n = Notification.Builder(ctx, CHANNEL_ID)
             .setContentTitle("超级岛")
-            .setContentText("OS3 测试")
+            .setContentText(json.substring(0.coerceAtMost(80)))
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentIntent(pi)
-            .setOngoing(false)
+            .setOngoing(
+                JSONObject(json)
+                    .getJSONObject("param_v2")
+                    .optBoolean("updatable", false)
+            )
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
             .build()
 
         n.extras.putString(KEY_PARAM, json)
         ctx.getSystemService(android.app.NotificationManager::class.java)
-            .notify(++idCounter, n)
+            .notify(notifId, n)
     }
 
     // ═══════════════════════════════════════

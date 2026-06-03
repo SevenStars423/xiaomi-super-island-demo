@@ -13,7 +13,6 @@
         android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
 
-        <!-- 超级岛服务 AppId（开通服务后从小米平台获取） -->
         <meta-data
             android:name="com.xiaomi.xms.APP_ID"
             android:value="YOUR_APP_ID_HERE" />

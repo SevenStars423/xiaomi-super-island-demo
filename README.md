@@ -1,132 +1,120 @@
-# 小米超级岛 Demo
+# 小米超级岛通知 Demo
 
-基于 Xiaomi HyperOS 超级岛通知系统开发的 Android 示例项目。
+适用于 Xiaomi HyperOS 3 超级岛（Focus Notification + Island）。
 
-## 功能
+## 项目功能
 
-1. **客户端发送超级岛通知** — 支持打车、外卖、倒计时三种场景
-2. **微信通知桥接** — 监听微信新消息，以超级岛形式重新展示
-3. **系统状态检测** — 检测岛支持、焦点协议版本、权限状态
+- **客户端发送 OS3 格式超级岛通知** — 打车、外卖配送、倒计时三种场景
+- **微信通知桥接** — 监听微信新消息，以超级岛形式重新展示
+- **设备诊断面板** — 检测岛支持、焦点协议版本、权限状态
 
-## 环境要求
+## 场景说明（用于方案提报）
 
-- Android 9.0+ (API 28+)
-- 小米设备 HyperOS 2.0+（OS2 支持焦点通知，OS3 支持完整超级岛）
-- Android Studio Hedgehog+
+| 场景 | 触发条件 | 结束条件 | 持续时长 |
+|------|---------|---------|---------|
+| 🚗 网约车出行 | 用户下单叫车 | 行程结束/订单取消 | ≤60 分钟 |
+| 🛵 外卖配送 | 用户下单外卖 | 送达/订单取消 | ≤60 分钟 |
+| ⏱ 倒计时提醒 | 用户设置计时 | 计时结束/手动取消 | ≤120 分钟 |
+
+## 场景节点一览
+
+### 🚗 网约车出行
+
+| 节点 | 出现时机 | 展示内容 | 自动展开 |
+|------|---------|---------|---------|
+| 等待接单 | 用户下单成功后 | 大岛：等待中 / 小岛：图标 | ✅ 首次 |
+| 司机已接单 | 司机接单后 | 大岛：接驾中+3分钟 / 小岛：图标 | ✅ |
+| 司机到达 | 司机到达上车点 | 大岛：已到达 / 小岛：图标 | 否 |
+| 行程中 | 出发后 | 大岛：行程中+距离 / 小岛：图标 | 否 |
+| 行程结束 | 到达目的地 | 焦点通知显示费用 | 否 |
+| 订单取消 | 用户/司机取消 | 立即清除岛通知 | — |
+
+### 🛵 外卖配送
+
+| 节点 | 出现时机 | 展示内容 | 自动展开 |
+|------|---------|---------|---------|
+| 商家接单 | 下单成功 | 大岛：已接单+预计送达 / 小岛：图标 | ✅ |
+| 骑手取餐 | 骑手已取餐 | 大岛：配送中+骑士名 / 小岛：图标 | ✅ |
+| 配送中 | 骑手出发 | 大岛：配送中+距离 / 小岛：图标 | 否 |
+| 已送达 | 送达 | 焦点通知显示"已送达" | 否 |
+| 取消 | 取消 | 清除岛通知 | — |
+
+### ⏱ 倒计时提醒
+
+| 节点 | 出现时机 | 展示内容 | 自动展开 |
+|------|---------|---------|---------|
+| 开始计时 | 用户设置后 | 大岛：倒计时+数字 / 小岛：图标 | ✅ |
+| 更新 | 每秒更新 | 大岛：剩余时间更新 | 否 |
+| 结束 | 计时结束 | 焦点通知显示"时间到" | 否 |
+| 取消 | 手动取消 | 清除岛通知 | — |
+
+## 展示时长
+
+| 项目 | 时长 |
+|------|------|
+| 岛展开态自动收起 | 5 秒 |
+| 岛默认消失时间 | 5 分钟（设置 islandTimeout=300） |
+| 通知卡片消失时间 | 30-120 分钟（按场景设置 timeout） |
+
+## 模板选择
+
+| 场景 | 大岛模板 | 小岛 | OS 版本 |
+|------|---------|------|---------|
+| 打车 | 图文组件1 + 图文组件2 (模板3) | 图标组件 | OS3 |
+| 配送 | 图文组件1 + 文本组件 (模板2) | 图标组件 | OS3 |
+| 倒计时 | 图文组件1 + 等宽数字文本组件 (模板6) | 图标文本组件 | OS3 |
 
 ## 快速开始
 
-### 1. 克隆项目
-
-```bash
-cd xiaomi-super-island-demo
-```
-
-### 2. 配置 AppId
+### 1. 配置 AppId
 
 在 `app/src/main/AndroidManifest.xml` 中替换：
 
 ```xml
-<meta-data
-    android:name="com.xiaomi.xms.APP_ID"
-    android:value="YOUR_APP_ID_HERE" />
+<meta-data android:name="com.xiaomi.xms.APP_ID" android:value="YOUR_APP_ID_HERE" />
 ```
 
-AppId 在小米开放平台开通超级岛服务后获取。
+### 2. 配置 Debug 标识
 
-### 3. 授予通知监听权限（桥接功能）
-
-1. 安装应用后，点击「开启通知监听权限」
-2. 在系统设置中勾选本应用
-3. 微信需开启「通知显示消息详情」
-
-### 4. 微信桥接原理
-
+```xml
+<meta-data android:name="com.xiaomi.xms.BUILD_TYPE_DEBUG" android:value="false" />
 ```
-微信发通知 → NotificationListenerService 拦截
-  → 提取 title + text + bigText
-  → BridgeNotifier 重塑为"待处理任务"通知
-  → SuperIslandNotifier 以超级岛格式重新发出
+
+正式发布前请改为 `false`。
+
+### 3. 构建
+
+```bash
+export ANDROID_HOME=/path/to/Android/sdk
+./gradlew assembleRelease
 ```
 
 ## 项目结构
 
 ```
 app/src/main/java/com/xiaomi/superislanddemo/
-├── MainActivity.kt              # 主界面（发送按钮 + 状态检测）
-├── SuperIslandNotifier.kt       # 超级岛通知发送工具
-│   ├── IslandParams             # 参数构建器
-│   ├── buildTaxiParams()        # 打车场景快捷工厂
-│   ├── buildDeliveryParams()    # 外卖场景快捷工厂
-│   └── buildTimerParams()       # 倒计时场景快捷工厂
+├── MainActivity.kt              # 主界面（诊断 + 发送按钮）
+├── Os3Notifier.kt               # 纯 OS3 格式超级岛通知发送器
+├── SuperIslandNotifier.kt       # 通用超级岛工具（含场景工厂）
+├── SuperIslandActionReceiver.kt # Action 点击处理
 ├── BridgeNotifier.kt            # 通知桥接发射器
 ├── WeChatNotificationBridge.kt  # 微信通知监听服务
-├── SuperIslandActionReceiver.kt # 超级岛 Action 点击处理
-└── SuperIslandForegroundService.kt # 前台保活服务
+├── MiPushFocusNotifier.kt       # MiPush 云端发送工具
+└── SuperIslandForegroundService.kt # 前台保活
 ```
 
-## 接入流程
+## 方案提交流程
 
-完整接入小米超级岛需要以下步骤：
+详见 `docs/方案提报模板.md`。
 
-1. **注册小米开发者账号**
-   - 访问 https://dev.mi.com
-   - 企业认证（1-3 工作日审核）
-
-2. **创建应用**
-   - 完善应用资料，上传包体
-
-3. **开通超级岛服务**
-   - 进入开放服务 → 小米超级岛 → 启用
-   - 配置指纹证书，获取 AppId
-
-4. **场景方案提报**
-   - 预审（描述业务场景）
-   - 正式审核（完整 UI 方案 + 所有状态节点）
-
-5. **联调测试**
-   - 设备白名单管理（OAID，最多 10 台，30 天有效）
-   - AndroidManifest.xml 配置 AppId + Debug 标识
-
-6. **上线验证**
-   - 提交正式 APK + 验证方法
-   - 灰度 7-15 天全量
-
-## 图片来源规范
-
-| 位置 | 尺寸 | 格式 |
-|------|------|------|
-| 摘要态图标 | ≥88×88px | 正方形 |
-| 展开态应用图标 | ≥96×96px | 正方形 |
-| 展开态功能图标 | ≥80×80px | 正方形 |
-| 大图组件 | ≥224×224px | 正方形 |
-| 进度组件图形 | ≥240×188px | — |
-| MiPush 图片 | ≤100KB | HTTPS |
-
-## 关键技术参数
+## 技术参数
 
 | 参数 | 限制 |
 |------|------|
 | miui.focus.param | ≤3072 字节 |
-| MiPush 图片 | 单张 ≤100KB，宽高比 1:1 ~ 16:9 |
-| 单个通知图片数量 | ≤10 张 |
-| 岛默认消失时间 | 60 分钟 |
-| 通知默认消失时间 | 720 分钟 |
-| 焦点通知权限 | 默认随通知权限开启 |
-
-## 调试
-
-```bash
-# 查看焦点通知日志（小米设备）
-*#*#284#*#*
-# 日志位置：sdcard/MIUI/debug_log/
-
-# adb 查看焦点通知协议版本
-adb shell settings get system notification_focus_protocol
-
-# 检查岛功能支持
-adb shell getprop persist.sys.feature.island
-```
+| MiPush 图片 | 单张 ≤100KB，HTTPS，宽高比 1:1~16:9 |
+| 单通知图片 | ≤10 张 |
+| 白名单 | 10 台设备，30 天有效 |
 
 ## License
 
