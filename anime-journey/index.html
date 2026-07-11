@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { background: #000; overflow: hidden; }
+
+  [data-composition-id="root"] {
+    position: relative;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: #000;
+    font-family: "Inter", "Noto Sans JP", sans-serif;
+  }
+
+  .clip { position: absolute; inset: 0; }
+
+  /* ===== Shared text styling ===== */
+  .jp-title {
+    font-family: "Noto Sans JP", sans-serif;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    line-height: 1;
+  }
+  .en-label {
+    font-family: "Bebas Neue", sans-serif;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+  }
+  .body-text {
+    font-family: "Inter", sans-serif;
+    font-weight: 400;
+    line-height: 1.6;
+  }
+
+  /* ===== Transition overlays ===== */
+  .transition {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    opacity: 0;
+    transform: scale(0);
+    pointer-events: none;
+  }
+  #trans1 { background: radial-gradient(circle at 50% 50%, #FFF5F8 0%, #FFC4D6 35%, #FF8FAB 75%, #FF6B8B 100%); }
+  #trans2 { background: radial-gradient(circle at 50% 50%, #FFFFFF 0%, #BFE6FF 35%, #5BB8F0 75%, #2E7BC4 100%); }
+  #trans3 { background: radial-gradient(circle at 50% 50%, #FFFFFF 0%, #E8D5FF 35%, #9B7BE0 75%, #4A2C7A 100%); }
+  #trans4 { background: radial-gradient(circle at 50% 50%, #FFF0E0 0%, #FFB37A 35%, #FF6B35 75%, #C73E7C 100%); }
+
+  /* ===== Scene 1: Dawn ===== */
+  #scene1 {
+    background: linear-gradient(180deg, #2B2467 0%, #5B3B8C 28%, #C76A8E 52%, #FF9E6D 74%, #FFD9A0 100%);
+  }
+  .s1-stars-bg { position: absolute; inset: 0; opacity: 0.5; }
+  .s1-mountains { position: absolute; bottom: 0; left: 0; width: 100%; height: 52%; }
+  .s1-sun {
+    position: absolute;
+    width: 320px; height: 320px;
+    left: 50%; bottom: 30%;
+    transform: translate(-50%, 50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, #FFF3B0 0%, #FFD166 45%, #FF9E6D 100%);
+    box-shadow: 0 0 180px 90px rgba(255, 209, 102, 0.45);
+    z-index: 1;
+  }
+  .s1-glow {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 65%, rgba(255,209,102,0.35) 0%, transparent 55%);
+    z-index: 0;
+  }
+  .s1-content {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 5;
+    padding: 0 200px;
+    gap: 28px;
+  }
+  .s1-title { font-size: 200px; color: #FFFFFF; text-shadow: 0 8px 40px rgba(43,36,103,0.55); }
+  .s1-sub { font-size: 52px; color: rgba(255,255,255,0.85); }
+  .s1-petal { position: absolute; width: 22px; height: 22px; z-index: 6; }
+
+  /* ===== Scene 2: Departure ===== */
+  #scene2 {
+    background: linear-gradient(180deg, #4A8FD6 0%, #7EC8E3 45%, #B8E6F5 80%, #E4F4FB 100%);
+  }
+  .s2-clouds { position: absolute; inset: 0; }
+  .s2-cloud {
+    position: absolute;
+    background: rgba(255,255,255,0.75);
+    border-radius: 50%;
+    filter: blur(2px);
+  }
+  .s2-birds { position: absolute; top: 22%; left: 0; width: 100%; height: 30%; z-index: 2; }
+  .s2-path-wrap {
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 42%; z-index: 1;
+  }
+  .s2-content {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 5;
+    padding: 0 200px;
+    gap: 36px;
+  }
+  .s2-jp { font-size: 170px; color: #FFFFFF; text-shadow: 0 6px 30px rgba(30,80,140,0.4); display: flex; gap: 0.15em; }
+  .s2-jp span { display: inline-block; }
+  .s2-en { font-size: 64px; color: #FFFFFF; }
+  .s2-tag { font-size: 24px; color: rgba(255,255,255,0.8); font-family: "Inter"; letter-spacing: 0.1em; }
+
+  /* ===== Scene 3: Starry Sky ===== */
+  #scene3 {
+    background: linear-gradient(180deg, #050817 0%, #0B1B3A 35%, #142855 70%, #1E3A6E 100%);
+  }
+  .s3-nebula {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 25% 35%, rgba(91,234,212,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 35% at 75% 60%, rgba(155,123,224,0.16) 0%, transparent 60%);
+  }
+  .s3-star { position: absolute; background: #F5F5DC; border-radius: 50%; }
+  .s3-shoot { position: absolute; height: 2px; border-radius: 2px; }
+  .s3-constellation { position: absolute; inset: 0; z-index: 2; }
+  .s3-content {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 5;
+    padding: 0 200px;
+    gap: 28px;
+  }
+  .s3-title { font-size: 190px; color: #E8D5FF; text-shadow: 0 0 50px rgba(155,123,224,0.6); }
+  .s3-sub { font-size: 50px; color: rgba(232,213,255,0.75); }
+  .s3-quote { font-size: 26px; color: rgba(255,255,255,0.55); font-family: "Inter"; font-style: italic; max-width: 700px; text-align: center; line-height: 1.7; }
+
+  /* ===== Scene 4: Sunset ===== */
+  #scene4 {
+    background: linear-gradient(180deg, #3D1B5E 0%, #6B2C7A 22%, #C73E7C 45%, #FF6B35 68%, #FFA159 85%, #FFC97A 100%);
+  }
+  .s4-sun {
+    position: absolute;
+    width: 420px; height: 420px;
+    left: 50%; top: 52%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, #FFE8B0 0%, #FFB347 40%, #FF6B35 80%, #E0492A 100%);
+    box-shadow: 0 0 200px 100px rgba(255, 107, 53, 0.4);
+    z-index: 1;
+  }
+  .s4-ocean {
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 34%;
+    background: linear-gradient(180deg, rgba(61,27,94,0.4) 0%, rgba(61,27,94,0.85) 100%);
+    z-index: 2;
+    overflow: hidden;
+  }
+  .s4-reflection {
+    position: absolute; top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 120px; height: 100%;
+    background: linear-gradient(180deg, rgba(255,180,90,0.6) 0%, rgba(255,140,60,0.2) 70%, transparent 100%);
+    filter: blur(8px);
+  }
+  .s4-figure {
+    position: absolute;
+    bottom: 26%; left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+  }
+  .s4-content {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    z-index: 5;
+    padding: 130px 200px 0;
+    gap: 20px;
+  }
+  .s4-title { font-size: 180px; color: #FFFFFF; text-shadow: 0 6px 40px rgba(61,27,94,0.5); }
+  .s4-sub { font-size: 50px; color: rgba(255,255,255,0.85); }
+
+  /* ===== Scene 5: Thank You ===== */
+  #scene5 {
+    background: linear-gradient(180deg, #FFF5F8 0%, #FFE0EC 40%, #FFC4D6 80%, #FFA1BF 100%);
+  }
+  .s5-glow {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 45%, rgba(255,255,255,0.5) 0%, transparent 55%);
+  }
+  .s5-petal { position: absolute; width: 24px; height: 24px; z-index: 3; }
+  .s5-content {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 5;
+    padding: 0 200px;
+    gap: 32px;
+  }
+  .s5-title { font-size: 210px; color: #C73E7C; text-shadow: 0 4px 30px rgba(199,62,124,0.25); }
+  .s5-sub { font-size: 56px; color: #8B2A5C; }
+  .s5-credits { font-size: 22px; color: rgba(139,42,92,0.6); font-family: "Inter"; letter-spacing: 0.06em; }
+  .s5-line { width: 120px; height: 3px; background: #C73E7C; opacity: 0.4; }
+  .s5-fade {
+    position: absolute; inset: 0; z-index: 10;
+    background: #FFF5F8;
+    opacity: 0;
+  }
+</style>
+</head>
+<body>
+<div data-composition-id="root" data-width="1920" data-height="1080" data-start="0" data-duration="60">
+
+  <!-- ============ SCENE 1: DAWN (0-12s) ============ -->
+  <div id="scene1" class="clip" data-start="0" data-duration="12" data-track-index="0">
+    <svg class="s1-stars-bg" viewBox="0 0 1920 1080" preserveAspectRatio="none">
+      <circle cx="180" cy="120" r="1.2" fill="#FFF" opacity="0.8"/>
+      <circle cx="420" cy="80" r="0.8" fill="#FFF" opacity="0.6"/>
+      <circle cx="760" cy="160" r="1" fill="#FFF" opacity="0.7"/>
+      <circle cx="1100" cy="100" r="1.4" fill="#FFF" opacity="0.9"/>
+      <circle cx="1450" cy="60" r="0.9" fill="#FFF" opacity="0.5"/>
+      <circle cx="1720" cy="140" r="1.1" fill="#FFF" opacity="0.7"/>
+      <circle cx="320" cy="220" r="0.7" fill="#FFF" opacity="0.4"/>
+      <circle cx="980" cy="240" r="1" fill="#FFF" opacity="0.6"/>
+      <circle cx="1320" cy="200" r="0.8" fill="#FFF" opacity="0.5"/>
+    </svg>
+    <div class="s1-glow"></div>
+    <div class="s1-sun" id="s1-sun"></div>
+    <svg class="s1-mountains" viewBox="0 0 1920 560" preserveAspectRatio="none">
+      <!-- far mountains -->
+      <path d="M0 560 L0 320 L240 200 L440 280 L680 180 L920 260 L1160 160 L1400 240 L1640 170 L1920 260 L1920 560 Z" fill="#5B3B8C" opacity="0.55"/>
+      <!-- mid mountains -->
+      <path d="M0 560 L0 400 L180 300 L400 360 L620 280 L860 350 L1100 270 L1340 340 L1580 290 L1920 370 L1920 560 Z" fill="#3D2A6B" opacity="0.75"/>
+      <!-- near mountains -->
+      <path d="M0 560 L0 470 L220 400 L480 440 L740 390 L1000 430 L1260 380 L1520 420 L1780 390 L1920 430 L1920 560 Z" fill="#241850" opacity="0.92"/>
+    </svg>
+    <div class="s1-content">
+      <div class="jp-title s1-title" id="s1-title">夜明け</div>
+      <div class="en-label s1-sub" id="s1-sub">DAWN — A NEW BEGINNING</div>
+    </div>
+    <!-- petals injected by JS -->
+    <div id="s1-petal-layer" style="position:absolute;inset:0;z-index:6;"></div>
+  </div>
+
+  <!-- ============ SCENE 2: DEPARTURE (12-24s) ============ -->
+  <div id="scene2" class="clip" data-start="12" data-duration="12" data-track-index="0">
+    <div class="s2-clouds" id="s2-clouds">
+      <div class="s2-cloud" style="width:380px;height:90px;top:14%;left:8%;"></div>
+      <div class="s2-cloud" style="width:280px;height:70px;top:24%;left:62%;"></div>
+      <div class="s2-cloud" style="width:320px;height:80px;top:9%;left:72%;"></div>
+      <div class="s2-cloud" style="width:240px;height:60px;top:30%;left:24%;"></div>
+    </div>
+    <svg class="s2-birds" viewBox="0 0 1920 320" preserveAspectRatio="none">
+      <path id="bird1" d="M0 20 Q 15 5 30 20 Q 45 5 60 20" stroke="#2B2467" stroke-width="3" fill="none" opacity="0.6"/>
+      <path id="bird2" d="M0 20 Q 12 8 24 20 Q 36 8 48 20" stroke="#2B2467" stroke-width="2.5" fill="none" opacity="0.5"/>
+      <path id="bird3" d="M0 20 Q 10 10 20 20 Q 30 10 40 20" stroke="#2B2467" stroke-width="2" fill="none" opacity="0.4"/>
+    </svg>
+    <div class="s2-path-wrap">
+      <svg viewBox="0 0 1920 454" preserveAspectRatio="none" style="width:100%;height:100%;">
+        <path id="s2-road" d="M960 0 Q 980 200 1100 340 Q 1200 400 1400 454" stroke="rgba(255,255,255,0.6)" stroke-width="60" fill="none" stroke-linecap="round"/>
+        <path id="s2-road2" d="M960 0 Q 940 200 820 340 Q 720 400 520 454" stroke="rgba(255,255,255,0.35)" stroke-width="44" fill="none" stroke-linecap="round"/>
+        <ellipse cx="960" cy="454" rx="700" ry="60" fill="rgba(100,160,90,0.4)"/>
+      </svg>
+    </div>
+    <div class="s2-content">
+      <div class="jp-title s2-jp" id="s2-jp">
+        <span id="s2-c1">光</span><span id="s2-c2">の</span><span id="s2-c3">旅</span>
+      </div>
+      <div class="en-label s2-en" id="s2-en">JOURNEY OF LIGHT</div>
+      <div class="s2-tag" id="s2-tag">— どこまでも続く道 —</div>
+    </div>
+  </div>
+
+  <!-- ============ SCENE 3: STARRY SKY (24-36s) ============ -->
+  <div id="scene3" class="clip" data-start="24" data-duration="12" data-track-index="0">
+    <div class="s3-nebula"></div>
+    <div id="s3-star-layer" style="position:absolute;inset:0;z-index:1;"></div>
+    <svg class="s3-constellation" viewBox="0 0 1920 1080" preserveAspectRatio="none">
+      <polyline id="s3-const-line" points="620,300 820,240 980,360 1140,280 1300,400 1450,320"
+        stroke="rgba(155,123,224,0.5)" stroke-width="1.5" fill="none" stroke-dasharray="900" stroke-dashoffset="900"/>
+      <circle cx="620" cy="300" r="4" fill="#E8D5FF"/>
+      <circle cx="820" cy="240" r="3.5" fill="#E8D5FF"/>
+      <circle cx="980" cy="360" r="4.5" fill="#E8D5FF"/>
+      <circle cx="1140" cy="280" r="3" fill="#E8D5FF"/>
+      <circle cx="1300" cy="400" r="4" fill="#E8D5FF"/>
+      <circle cx="1450" cy="320" r="3.5" fill="#E8D5FF"/>
+    </svg>
+    <div id="s3-shoot-layer" style="position:absolute;inset:0;z-index:2;"></div>
+    <div class="s3-content">
+      <div class="jp-title s3-title" id="s3-title">星空</div>
+      <div class="en-label s3-sub" id="s3-sub">STARLIT SKY</div>
+      <div class="s3-quote" id="s3-quote">「星は暗闇の中でこそ光る」</div>
+    </div>
+  </div>
+
+  <!-- ============ SCENE 4: SUNSET (36-48s) ============ -->
+  <div id="scene4" class="clip" data-start="36" data-duration="12" data-track-index="0">
+    <div class="s4-sun" id="s4-sun"></div>
+    <div class="s4-ocean">
+      <div class="s4-reflection" id="s4-reflection"></div>
+      <svg viewBox="0 0 1920 368" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;">
+        <path id="s4-wave1" d="M0 60 Q 160 40 320 60 T 640 60 T 960 60 T 1280 60 T 1600 60 T 1920 60 L1920 368 L0 368 Z" fill="rgba(255,140,60,0.15)"/>
+        <path id="s4-wave2" d="M0 120 Q 200 100 400 120 T 800 120 T 1200 120 T 1600 120 T 1920 120 L1920 368 L0 368 Z" fill="rgba(61,27,94,0.3)"/>
+      </svg>
+    </div>
+    <svg class="s4-figure" width="90" height="180" viewBox="0 0 90 180">
+      <!-- person silhouette -->
+      <circle cx="45" cy="28" r="18" fill="#1A0D2E"/>
+      <path d="M45 46 Q 35 50 32 70 L28 120 L34 180 L40 180 L42 130 L48 130 L50 180 L56 180 L62 120 L58 70 Q 55 50 45 46 Z" fill="#1A0D2E"/>
+    </svg>
+    <div class="s4-content">
+      <div class="jp-title s4-title" id="s4-title">夕暮れ</div>
+      <div class="en-label s4-sub" id="s4-sub">SUNSET — THE DAY SLEEPS</div>
+    </div>
+  </div>
+
+  <!-- ============ SCENE 5: THANK YOU (48-60s) ============ -->
+  <div id="scene5" class="clip" data-start="48" data-duration="12" data-track-index="0">
+    <div class="s5-glow"></div>
+    <div id="s5-petal-layer" style="position:absolute;inset:0;z-index:3;"></div>
+    <div class="s5-content">
+      <div class="en-label s5-sub" id="s5-pre" style="font-size:34px;color:rgba(139,42,92,0.6);">A SHORT FILM</div>
+      <div class="jp-title s5-title" id="s5-title">ありがとう</div>
+      <div class="s5-line" id="s5-line"></div>
+      <div class="en-label s5-sub" id="s5-sub2" style="color:#8B2A5C;">THANK YOU FOR WATCHING</div>
+      <div class="s5-credits" id="s5-credits">光の旅 · JOURNEY OF LIGHT · 2026</div>
+    </div>
+    <div class="s5-fade" id="s5-fade"></div>
+  </div>
+
+  <!-- ============ TRANSITIONS (track 1) ============ -->
+  <div id="trans1" class="transition clip" data-start="11.3" data-duration="1.4" data-track-index="1"></div>
+  <div id="trans2" class="transition clip" data-start="23.3" data-duration="1.4" data-track-index="1"></div>
+  <div id="trans3" class="transition clip" data-start="35.3" data-duration="1.4" data-track-index="1"></div>
+  <div id="trans4" class="transition clip" data-start="47.3" data-duration="1.4" data-track-index="1"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    // ===== Seeded PRNG (deterministic — no Math.random) =====
+    function mulberry32(seed) {
+      return function() {
+        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+    const rng = mulberry32(42);
+
+    // SVG petal markup
+    const PETAL_SVG = '<svg viewBox="0 0 24 24" style="width:100%;height:100%;"><path d="M12 2 C 16 6 16 14 12 22 C 8 14 8 6 12 2 Z" fill="#FFB7C5" opacity="0.92"/></svg>';
+    const PETAL_SVG_PINK = '<svg viewBox="0 0 24 24" style="width:100%;height:100%;"><path d="M12 2 C 16 6 16 14 12 22 C 8 14 8 6 12 2 Z" fill="#FF8FAB" opacity="0.88"/></svg>';
+
+    // ===== Generate Scene 1 petals =====
+    const s1Layer = document.getElementById("s1-petal-layer");
+    const s1Petals = [];
+    for (let i = 0; i < 18; i++) {
+      const p = document.createElement("div");
+      p.className = "s1-petal";
+      p.innerHTML = i % 2 === 0 ? PETAL_SVG : PETAL_SVG_PINK;
+      p.style.left = (rng() * 1880) + "px";
+      p.style.top = "-40px";
+      s1Layer.appendChild(p);
+      s1Petals.push(p);
+    }
+
+    // ===== Generate Scene 3 stars =====
+    const s3Layer = document.getElementById("s3-star-layer");
+    const s3Stars = [];
+    for (let i = 0; i < 55; i++) {
+      const s = document.createElement("div");
+      s.className = "s3-star";
+      const size = rng() * 2.5 + 1;
+      s.style.width = size + "px";
+      s.style.height = size + "px";
+      s.style.left = (rng() * 1900) + "px";
+      s.style.top = (rng() * 680) + "px";
+      s.style.opacity = "0";
+      s3Layer.appendChild(s);
+      s3Stars.push(s);
+    }
+
+    // ===== Generate Scene 3 shooting stars =====
+    const s3ShootLayer = document.getElementById("s3-shoot-layer");
+    const s3Shoots = [];
+    const shootConfigs = [
+      { x: 200, y: 150, dx: 500, dy: 280, t: 26 },
+      { x: 1100, y: 100, dx: 450, dy: 300, t: 30 },
+      { x: 600, y: 80, dx: 600, dy: 320, t: 33 }
+    ];
+    shootConfigs.forEach((c, i) => {
+      const s = document.createElement("div");
+      s.className = "s3-shoot";
+      s.style.width = "180px";
+      s.style.left = c.x + "px";
+      s.style.top = c.y + "px";
+      s.style.background = "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.9) 80%, #FFFFFF 100%)";
+      s.style.opacity = "0";
+      s.style.transform = "rotate(" + Math.atan2(c.dy, c.dx) * 180 / Math.PI + "deg)";
+      s3ShootLayer.appendChild(s);
+      s3Shoots.push({ el: s, cfg: c });
+    });
+
+    // ===== Generate Scene 5 petals =====
+    const s5Layer = document.getElementById("s5-petal-layer");
+    const s5Petals = [];
+    for (let i = 0; i < 22; i++) {
+      const p = document.createElement("div");
+      p.className = "s5-petal";
+      p.innerHTML = i % 2 === 0 ? PETAL_SVG : PETAL_SVG_PINK;
+      p.style.left = (rng() * 1880) + "px";
+      p.style.top = "-50px";
+      s5Layer.appendChild(p);
+      s5Petals.push(p);
+    }
+
+    // ===== Build timeline =====
+    window.__timelines = {};
+    const tl = gsap.timeline({ paused: true });
+
+    // ---------- SCENE 1: DAWN (0-12) ----------
+    tl.set("#s1-sun", { y: 120, opacity: 0 }, 0);
+    tl.to("#s1-sun", { y: 0, opacity: 1, duration: 3.5, ease: "power2.out" }, 0.3);
+    tl.from("#s1-title", { y: 80, opacity: 0, duration: 1.2, ease: "power3.out" }, 1.0);
+    tl.from("#s1-sub", { y: 40, opacity: 0, duration: 0.9, ease: "power2.out" }, 1.8);
+
+    // Scene 1 petals — staggered continuous fall
+    s1Petals.forEach((p, i) => {
+      const startX = parseFloat(p.style.left);
+      const drift = (rng() - 0.5) * 200;
+      const startOffset = rng() * 6;
+      const fallDur = 6 + rng() * 2;
+      const cycles = Math.ceil((12 - startOffset) / fallDur);
+      tl.fromTo(p,
+        { y: -40, x: startX, rotation: 0, opacity: 0 },
+        { y: 1140, x: startX + drift, rotation: 360, opacity: 0.9, duration: fallDur, ease: "none",
+          repeat: Math.max(0, cycles - 1) },
+        startOffset
+      );
+    });
+
+    // ---------- TRANSITION 1 (11.3-12.7) ----------
+    tl.set("#trans1", { opacity: 0, scale: 0 }, 0);
+    tl.to("#trans1", { opacity: 1, scale: 1, duration: 0.6, ease: "power2.in" }, 11.3);
+    tl.to("#trans1", { opacity: 0, scale: 1.5, duration: 0.8, ease: "power2.out" }, 12.0);
+
+    // ---------- SCENE 2: DEPARTURE (12-24) ----------
+    tl.from("#s2-clouds", { opacity: 0, duration: 1.2, ease: "power2.out" }, 12.2);
+    tl.fromTo("#s2-road", { strokeDashoffset: 1200, strokeDasharray: 1200 },
+      { strokeDashoffset: 0, duration: 2.5, ease: "power2.inOut" }, 12.5);
+    tl.fromTo("#s2-road2", { strokeDashoffset: 1000, strokeDasharray: 1000 },
+      { strokeDashoffset: 0, duration: 2.5, ease: "power2.inOut" }, 12.7);
+    tl.from("#s2-c1", { y: 60, opacity: 0, duration: 0.6, ease: "back.out(1.6)" }, 13.2);
+    tl.from("#s2-c2", { y: 60, opacity: 0, duration: 0.6, ease: "back.out(1.6)" }, 13.5);
+    tl.from("#s2-c3", { y: 60, opacity: 0, duration: 0.6, ease: "back.out(1.6)" }, 13.8);
+    tl.from("#s2-en", { y: 30, opacity: 0, duration: 0.8, ease: "power3.out" }, 14.4);
+    tl.from("#s2-tag", { opacity: 0, duration: 0.8, ease: "power2.out" }, 15.0);
+
+    // Birds flying across (scene 2)
+    tl.fromTo("#bird1", { x: -100, y: 40 }, { x: 1700, y: 10, duration: 6, ease: "none", repeat: 1 }, 13);
+    tl.fromTo("#bird2", { x: -80, y: 90 }, { x: 1750, y: 60, duration: 7, ease: "none", repeat: 1 }, 13.5);
+    tl.fromTo("#bird3", { x: -60, y: 130 }, { x: 1700, y: 100, duration: 6.5, ease: "none", repeat: 1 }, 14);
+
+    // ---------- TRANSITION 2 (23.3-24.7) ----------
+    tl.set("#trans2", { opacity: 0, scale: 0 }, 0);
+    tl.to("#trans2", { opacity: 1, scale: 1, duration: 0.6, ease: "power2.in" }, 23.3);
+    tl.to("#trans2", { opacity: 0, scale: 1.5, duration: 0.8, ease: "power2.out" }, 24.0);
+
+    // ---------- SCENE 3: STARRY SKY (24-36) ----------
+    // Stars twinkle — each with finite repeats
+    s3Stars.forEach((s, i) => {
+      const twDur = 0.8 + rng() * 1.2;
+      const startT = 24.3 + rng() * 2;
+      const cycles = Math.ceil((36 - startT) / twDur);
+      tl.fromTo(s, { opacity: 0.15 },
+        { opacity: 0.9, duration: twDur, ease: "sine.inOut",
+          repeat: Math.max(0, cycles - 1), yoyo: true },
+        startT
+      );
+    });
+
+    // Constellation line draws in
+    tl.fromTo("#s3-const-line", { strokeDashoffset: 900 },
+      { strokeDashoffset: 0, duration: 2.5, ease: "power2.inOut" }, 26.0);
+    tl.from("#s3-title", { y: 70, opacity: 0, duration: 1.1, ease: "power3.out" }, 26.5);
+    tl.from("#s3-sub", { y: 35, opacity: 0, duration: 0.8, ease: "power2.out" }, 27.2);
+    tl.from("#s3-quote", { opacity: 0, y: 20, duration: 1.0, ease: "power2.out" }, 28.0);
+
+    // Shooting stars
+    s3Shoots.forEach(({ el, cfg }) => {
+      tl.set(el, { opacity: 0, x: 0, y: 0 }, cfg.t - 0.1);
+      tl.to(el, { opacity: 1, duration: 0.15, ease: "power2.in" }, cfg.t);
+      tl.to(el, { x: cfg.dx, y: cfg.dy, duration: 0.9, ease: "power2.in" }, cfg.t);
+      tl.to(el, { opacity: 0, duration: 0.4, ease: "power2.out" }, cfg.t + 0.5);
+    });
+
+    // ---------- TRANSITION 3 (35.3-36.7) ----------
+    tl.set("#trans3", { opacity: 0, scale: 0 }, 0);
+    tl.to("#trans3", { opacity: 1, scale: 1, duration: 0.6, ease: "power2.in" }, 35.3);
+    tl.to("#trans3", { opacity: 0, scale: 1.5, duration: 0.8, ease: "power2.out" }, 36.0);
+
+    // ---------- SCENE 4: SUNSET (36-48) ----------
+    tl.from("#s4-sun", { scale: 0.7, opacity: 0, duration: 2.0, ease: "power2.out" }, 36.3);
+    tl.from("#s4-ocean", { opacity: 0, duration: 1.5, ease: "power2.out" }, 36.5);
+    tl.fromTo("#s4-wave1", { x: 0 }, { x: -80, duration: 4, ease: "sine.inOut", repeat: 2, yoyo: true }, 37.0);
+    tl.fromTo("#s4-wave2", { x: 0 }, { x: 60, duration: 5, ease: "sine.inOut", repeat: 1, yoyo: true }, 37.2);
+    tl.from("#s4-reflection", { opacity: 0, duration: 1.5, ease: "power2.out" }, 37.0);
+    tl.from(".s4-figure", { y: 40, opacity: 0, duration: 1.5, ease: "power3.out" }, 37.5);
+    tl.from("#s4-title", { y: 60, opacity: 0, duration: 1.1, ease: "power3.out" }, 38.0);
+    tl.from("#s4-sub", { y: 30, opacity: 0, duration: 0.8, ease: "power2.out" }, 38.7);
+
+    // ---------- TRANSITION 4 (47.3-48.7) ----------
+    tl.set("#trans4", { opacity: 0, scale: 0 }, 0);
+    tl.to("#trans4", { opacity: 1, scale: 1, duration: 0.6, ease: "power2.in" }, 47.3);
+    tl.to("#trans4", { opacity: 0, scale: 1.5, duration: 0.8, ease: "power2.out" }, 48.0);
+
+    // ---------- SCENE 5: THANK YOU (48-60) ----------
+    tl.from("#s5-pre", { opacity: 0, y: 20, duration: 0.9, ease: "power2.out" }, 48.5);
+    tl.from("#s5-title", { y: 70, opacity: 0, scale: 0.9, duration: 1.4, ease: "back.out(1.4)" }, 49.2);
+    tl.from("#s5-line", { scaleX: 0, opacity: 0, duration: 0.8, ease: "power2.out" }, 50.2);
+    tl.from("#s5-sub2", { y: 30, opacity: 0, duration: 0.9, ease: "power3.out" }, 50.6);
+    tl.from("#s5-credits", { opacity: 0, duration: 1.0, ease: "power2.out" }, 51.4);
+
+    // Scene 5 petals falling
+    s5Petals.forEach((p, i) => {
+      const startX = parseFloat(p.style.left);
+      const drift = (rng() - 0.5) * 160;
+      const startOffset = rng() * 8;
+      const fallDur = 7 + rng() * 2;
+      const cycles = Math.ceil((11.5 - startOffset) / fallDur);
+      tl.fromTo(p,
+        { y: -50, x: startX, rotation: 0, opacity: 0 },
+        { y: 1140, x: startX + drift, rotation: 320, opacity: 0.85, duration: fallDur, ease: "none",
+          repeat: Math.max(0, cycles - 1) },
+        48 + startOffset
+      );
+    });
+
+    // Final fade out (allowed — this is the last scene)
+    tl.to("#s5-fade", { opacity: 1, duration: 1.8, ease: "power2.inOut" }, 58.0);
+    tl.to("#s5-title, #s5-sub2, #s5-pre, #s5-line, #s5-credits", { opacity: 0, duration: 1.2, ease: "power2.in" }, 58.4);
+
+    window.__timelines["root"] = tl;
+  </script>
+</div>
+</body>
+</html>
