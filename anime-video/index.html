@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #06070d;
+        font-family: "Noto Sans CJK SC", sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .scene {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+      }
+
+      /* ============ SHARED ============ */
+      .ep-tag {
+        position: absolute;
+        top: 70px;
+        left: 60px;
+        font-family: "Noto Sans CJK SC", sans-serif;
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        color: #8a96b0;
+        z-index: 20;
+      }
+      .ep-tag .num {
+        color: #ffb52e;
+        font-weight: 900;
+      }
+
+      .scene-label {
+        position: absolute;
+        top: 110px;
+        left: 60px;
+        font-family: "Noto Serif CJK SC", serif;
+        font-size: 38px;
+        font-weight: 900;
+        letter-spacing: 0.05em;
+        z-index: 20;
+      }
+
+      .quote-block {
+        position: absolute;
+        left: 60px;
+        right: 60px;
+        font-family: "Noto Serif CJK SC", serif;
+        font-weight: 900;
+        line-height: 1.25;
+        z-index: 18;
+      }
+      .quote-line {
+        display: block;
+      }
+      .quote-accent {
+        color: #ffb52e;
+      }
+
+      .caption-bar {
+        position: absolute;
+        left: 50px;
+        right: 50px;
+        bottom: 150px;
+        text-align: center;
+        z-index: 25;
+      }
+      .caption-text {
+        display: inline-block;
+        font-family: "Noto Sans CJK SC", sans-serif;
+        font-size: 42px;
+        font-weight: 700;
+        color: #f2ede0;
+        background: rgba(8, 10, 20, 0.72);
+        padding: 14px 36px;
+        border-radius: 14px;
+        letter-spacing: 0.02em;
+        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+        visibility: hidden;
+      }
+      .caption-text .hl {
+        color: #ffb52e;
+      }
+      .caption-text .hl-red {
+        color: #ff5a3c;
+      }
+      .caption-text .hl-silver {
+        color: #b8c8e8;
+      }
+
+      .stat-num {
+        font-variant-numeric: tabular-nums;
+        font-family: "Noto Serif CJK SC", serif;
+      }
+
+      /* ghost text decoratives */
+      .ghost {
+        position: absolute;
+        font-family: "Noto Serif CJK SC", serif;
+        font-weight: 900;
+        line-height: 1;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      /* ============ SCENE 1 — DESPAIR ============ */
+      #scene1 {
+        z-index: 1;
+        background: #06070d;
+      }
+      #scene1 .bg-glow {
+        position: absolute;
+        width: 900px;
+        height: 900px;
+        top: 200px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: radial-gradient(circle, rgba(74, 93, 128, 0.18) 0%, rgba(74, 93, 128, 0) 65%);
+        border-radius: 50%;
+      }
+      #scene1 .ghost-fei {
+        top: 380px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 560px;
+        color: rgba(90, 107, 140, 0.06);
+      }
+      /* rain streaks */
+      .rain-layer {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+      .rain-streak {
+        position: absolute;
+        width: 2px;
+        background: linear-gradient(to bottom, rgba(138, 150, 176, 0), rgba(138, 150, 176, 0.25));
+        top: -120px;
+      }
+      #scene1 .phone-card {
+        position: absolute;
+        top: 360px;
+        left: 80px;
+        width: 420px;
+        background: #11141f;
+        border: 3px solid #2a3045;
+        border-radius: 22px;
+        padding: 36px 32px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+      }
+      #scene1 .phone-card .ph-label {
+        font-size: 22px;
+        color: #6a7591;
+        letter-spacing: 0.1em;
+        margin-bottom: 14px;
+      }
+      #scene1 .phone-card .ph-msg {
+        font-size: 32px;
+        font-weight: 700;
+        color: #ff5a3c;
+        line-height: 1.4;
+      }
+      #scene1 .phone-card .ph-time {
+        font-size: 20px;
+        color: #4a5468;
+        margin-top: 18px;
+        font-variant-numeric: tabular-nums;
+      }
+      #scene1 .balance-card {
+        position: absolute;
+        top: 360px;
+        right: 80px;
+        width: 380px;
+        background: #11141f;
+        border: 3px solid #2a3045;
+        border-radius: 22px;
+        padding: 36px 32px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+        text-align: right;
+      }
+      #scene1 .balance-card .bal-label {
+        font-size: 22px;
+        color: #6a7591;
+        letter-spacing: 0.1em;
+        margin-bottom: 10px;
+      }
+      #scene1 .balance-card .bal-val {
+        font-size: 68px;
+        font-weight: 900;
+        color: #ff5a3c;
+      }
+      #scene1 .balance-card .bal-sub {
+        font-size: 20px;
+        color: #4a5468;
+        margin-top: 10px;
+      }
+      #scene1 .triple-row {
+        position: absolute;
+        top: 760px;
+        left: 80px;
+        right: 80px;
+        display: flex;
+        gap: 24px;
+        justify-content: space-between;
+      }
+      #scene1 .triple-cell {
+        flex: 1;
+        background: rgba(20, 24, 38, 0.7);
+        border: 2px solid #232a3d;
+        border-radius: 16px;
+        padding: 30px 18px;
+        text-align: center;
+      }
+      #scene1 .triple-cell .tc-val {
+        font-size: 54px;
+        font-weight: 900;
+        color: #8a96b0;
+      }
+      #scene1 .triple-cell .tc-label {
+        font-size: 22px;
+        color: #4a5468;
+        margin-top: 8px;
+        letter-spacing: 0.1em;
+      }
+      #scene1 .noodle-bowl {
+        position: absolute;
+        bottom: 480px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 180px;
+        height: 110px;
+        background: radial-gradient(ellipse at center top, rgba(180, 150, 90, 0.12), transparent 70%);
+        border-radius: 0 0 90px 90px;
+      }
+      #scene1 .s1-quote {
+        bottom: 360px;
+        font-size: 50px;
+        color: #c8d0e0;
+      }
+      #scene1 .s1-quote .dim {
+        color: #5a6478;
+      }
+
+      /* ============ SCENE 2 — DECISION ============ */
+      #scene2 {
+        z-index: 2;
+        background: #0d0a08;
+        opacity: 0;
+      }
+      #scene2 .bg-glow {
+        position: absolute;
+        width: 1000px;
+        height: 800px;
+        top: 400px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: radial-gradient(circle, rgba(255, 140, 60, 0.12) 0%, rgba(255, 140, 60, 0) 65%);
+        border-radius: 50%;
+      }
+      #scene2 .ghost-bo {
+        top: 350px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 520px;
+        color: rgba(255, 140, 60, 0.05);
+      }
+      #scene2 .grandpa-card {
+        position: absolute;
+        top: 340px;
+        left: 80px;
+        width: 380px;
+        background: rgba(28, 22, 16, 0.8);
+        border: 3px solid #5a3e20;
+        border-radius: 22px;
+        padding: 36px 30px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+      }
+      #scene2 .grandpa-card .gc-icon {
+        font-size: 72px;
+        margin-bottom: 12px;
+      }
+      #scene2 .grandpa-card .gc-title {
+        font-size: 30px;
+        font-weight: 900;
+        color: #ffb52e;
+        margin-bottom: 10px;
+      }
+      #scene2 .grandpa-card .gc-sub {
+        font-size: 24px;
+        color: #a08868;
+        line-height: 1.4;
+      }
+      #scene2 .price-flow {
+        position: absolute;
+        top: 380px;
+        right: 60px;
+        width: 420px;
+        text-align: center;
+      }
+      #scene2 .price-flow .pf-price {
+        font-family: "Noto Serif CJK SC", serif;
+        font-size: 100px;
+        font-weight: 900;
+        color: #f2ede0;
+      }
+      #scene2 .price-flow .pf-price .yen {
+        color: #ffb52e;
+      }
+      #scene2 .price-flow .pf-arrow {
+        font-size: 56px;
+        color: #ffb52e;
+        margin: 10px 0;
+      }
+      #scene2 .price-flow .pf-result {
+        font-family: "Noto Serif CJK SC", serif;
+        font-size: 64px;
+        font-weight: 900;
+        color: #ffb52e;
+      }
+      #scene2 .pigeon-icon {
+        position: absolute;
+        top: 760px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      #scene2 .s2-quote {
+        bottom: 360px;
+        font-size: 50px;
+        color: #f2ede0;
+      }
+
+      /* ============ SCENE 3 — MYSTERY ============ */
+      #scene3 {
+        z-index: 3;
+        background: #080a0c;
+        opacity: 0;
+      }
+      #scene3 .bg-glow {
+        position: absolute;
+        width: 900px;
+        height: 1000px;
+        top: 300px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: radial-gradient(circle, rgba(122, 184, 122, 0.1) 0%, rgba(122, 184, 122, 0) 65%);
+        border-radius: 50%;
+      }
+      #scene3 .ghost-ming {
+        top: 360px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 540px;
+        color: rgba(122, 184, 122, 0.05);
+      }
+      #scene3 .old-man {
+        position: absolute;
+        top: 340px;
+        left: 80px;
+        width: 380px;
+        text-align: center;
+      }
+      #scene3 .old-man .om-figure {
+        width: 200px;
+        height: 280px;
+        margin: 0 auto;
+      }
+      #scene3 .old-man .om-name {
+        font-size: 28px;
+        font-weight: 700;
+        color: #b8c8e8;
+        margin-top: 16px;
+        letter-spacing: 0.1em;
+      }
+      #scene3 .book-card {
+        position: absolute;
+        top: 360px;
+        right: 70px;
+        width: 420px;
+        background: rgba(18, 22, 18, 0.85);
+        border: 3px solid #4a5a3a;
+        border-radius: 18px;
+        padding: 40px 34px;
+        box-shadow: 0 0 50px rgba(122, 184, 122, 0.15), 0 24px 60px rgba(0, 0, 0, 0.5);
+      }
+      #scene3 .book-card .bc-title {
+        font-family: "Noto Serif CJK SC", serif;
+        font-size: 72px;
+        font-weight: 900;
+        color: #c8e8a8;
+        text-align: center;
+        letter-spacing: 0.08em;
+      }
+      #scene3 .book-card .bc-sub {
+        font-size: 24px;
+        color: #7a8a6a;
+        text-align: center;
+        margin-top: 14px;
+        letter-spacing: 0.15em;
+      }
+      #scene3 .book-card .bc-time {
+        font-size: 30px;
+        font-weight: 700;
+        color: #ffb52e;
+        text-align: center;
+        margin-top: 24px;
+        padding-top: 24px;
+        border-top: 2px solid #2a3a2a;
+      }
+      #scene3 .s3-quote {
+        bottom: 360px;
+        font-size: 48px;
+        color: #c8e8a8;
+      }
+      #scene3 .s3-quote .speaker {
+        display: block;
+        font-size: 26px;
+        font-weight: 400;
+        color: #6a7a5a;
+        letter-spacing: 0.2em;
+        margin-bottom: 14px;
+      }
+
+      /* ============ SCENE 4 — DISCOVERY ============ */
+      #scene4 {
+        z-index: 4;
+        background: #07080e;
+        opacity: 0;
+      }
+      #scene4 .bg-glow {
+        position: absolute;
+        width: 800px;
+        height: 800px;
+        top: 500px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: radial-gradient(circle, rgba(184, 200, 232, 0.14) 0%, rgba(184, 200, 232, 0) 65%);
+        border-radius: 50%;
+      }
+      #scene4 .ghost-cao {
+        top: 380px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 500px;
+        color: rgba(184, 200, 232, 0.06);
+      }
+      #scene4 .grass-display {
+        position: absolute;
+        top: 340px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+      }
+      #scene4 .grass-display .gd-svg {
+        margin: 0 auto;
+        filter: drop-shadow(0 0 30px rgba(184, 200, 232, 0.5));
+      }
+      #scene4 .grass-display .gd-name {
+        font-family: "Noto Serif CJK SC", serif;
+        font-size: 64px;
+        font-weight: 900;
+        color: #c8d8f0;
+        margin-top: 20px;
+        letter-spacing: 0.1em;
+      }
+      #scene4 .match-row {
+        position: absolute;
+        top: 820px;
+        left: 80px;
+        right: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 30px;
+      }
+      #scene4 .match-row .mr-item {
+        width: 220px;
+        height: 160px;
+        background: rgba(18, 22, 38, 0.8);
+        border: 3px solid #3a4a6a;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        color: #6a7a9a;
+        text-align: center;
+      }
+      #scene4 .match-row .mr-eq {
+        font-size: 60px;
+        color: #b8c8e8;
+        font-weight: 900;
+      }
+      #scene4 .price-tag {
+        position: absolute;
+        top: 1060px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: "Noto Serif CJK SC", serif;
+        font-size: 90px;
+        font-weight: 900;
+        color: #ffb52e;
+      }
+      #scene4 .price-tag .pt-label {
+        display: block;
+        font-size: 28px;
+        color: #6a7591;
+        text-align: center;
+        font-weight: 400;
+        letter-spacing: 0.2em;
+        margin-bottom: 8px;
+      }
+      #scene4 .s4-quote {
+        bottom: 360px;
+        font-size: 48px;
+        color: #c8d8f0;
+      }
+      #scene4 .s4-quote .silver {
+        color: #b8c8e8;
+      }
+
+      /* ============ SCENE 5 — CLIMAX ============ */
+      #scene5 {
+        z-index: 5;
+        background: #0a0806;
+        opacity: 0;
+      }
+      #scene5 .bg-glow {
+        position: absolute;
+        width: 1000px;
+        height: 1400px;
+        top: 200px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: radial-gradient(ellipse, rgba(255, 181, 46, 0.22) 0%, rgba(255, 120, 20, 0.06) 40%, rgba(255, 120, 20, 0) 70%);
+        border-radius: 50%;
+      }
+      #scene5 .ghost-guang {
+        top: 320px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 580px;
+        color: rgba(255, 181, 46, 0.07);
+      }
+      #scene5 .light-column {
+        position: absolute;
+        top: 200px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 300px;
+        height: 900px;
+        background: linear-gradient(to top, rgba(255, 200, 80, 0.35), rgba(255, 220, 120, 0.12) 50%, transparent);
+        border-radius: 50%;
+        filter: blur(30px);
+      }
+      #scene5 .pot-display {
+        position: absolute;
+        top: 420px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+      }
+      #scene5 .pot-display .pd-label {
+        font-size: 28px;
+        color: #ffb52e;
+        letter-spacing: 0.2em;
+        margin-bottom: 20px;
+      }
+      #scene5 .pot-display .pd-time {
+        font-family: "Noto Serif CJK SC", serif;
+        font-size: 90px;
+        font-weight: 900;
+        color: #ffd870;
+      }
+      #scene5 .energy-burst {
+        position: absolute;
+        top: 680px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 500px;
+        height: 500px;
+      }
+      #scene5 .alchemy-row {
+        position: absolute;
+        top: 1220px;
+        left: 80px;
+        right: 80px;
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+      }
+      #scene5 .alchemy-row .ar-cell {
+        background: rgba(40, 28, 10, 0.7);
+        border: 2px solid #6a4a20;
+        border-radius: 14px;
+        padding: 24px 28px;
+        text-align: center;
+      }
+      #scene5 .alchemy-row .ar-cell .ar-icon {
+        font-size: 48px;
+      }
+      #scene5 .alchemy-row .ar-cell .ar-text {
+        font-size: 22px;
+        color: #c8a868;
+        margin-top: 8px;
+        letter-spacing: 0.1em;
+      }
+      #scene5 .s5-quote {
+        bottom: 360px;
+        font-size: 52px;
+        color: #ffd870;
+      }
+      #scene5 .s5-quote .gold {
+        color: #ffb52e;
+      }
+
+      /* ============ SCENE 6 — AWAKENING ============ */
+      #scene6 {
+        z-index: 6;
+        background: #0a0806;
+        opacity: 0;
+      }
+      #scene6 .bg-glow {
+        position: absolute;
+        width: 1100px;
+        height: 1100px;
+        top: 250px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: radial-gradient(circle, rgba(255, 181, 46, 0.18) 0%, rgba(255, 120, 20, 0.04) 50%, rgba(255, 120, 20, 0) 70%);
+        border-radius: 50%;
+      }
+      #scene6 .ghost-qiang {
+        top: 340px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 540px;
+        color: rgba(255, 181, 46, 0.06);
+      }
+      #scene6 .aura-rings {
+        position: absolute;
+        top: 380px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 500px;
+        height: 500px;
+      }
+      #scene6 .power-row {
+        position: absolute;
+        top: 940px;
+        left: 80px;
+        right: 80px;
+        display: flex;
+        gap: 24px;
+        justify-content: center;
+      }
+      #scene6 .power-row .pr-cell {
+        flex: 1;
+        background: rgba(40, 28, 10, 0.75);
+        border: 3px solid #6a4a20;
+        border-radius: 16px;
+        padding: 30px 20px;
+        text-align: center;
+      }
+      #scene6 .power-row .pr-cell .pr-icon {
+        font-size: 56px;
+      }
+      #scene6 .power-row .pr-cell .pr-text {
+        font-size: 26px;
+        font-weight: 700;
+        color: #ffb52e;
+        margin-top: 12px;
+        letter-spacing: 0.05em;
+      }
+      #scene6 .transform-text {
+        position: absolute;
+        top: 1160px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        white-space: nowrap;
+      }
+      #scene6 .transform-text .tt-old {
+        font-family: "Noto Serif CJK SC", serif;
+        font-size: 44px;
+        font-weight: 700;
+        color: #5a4a3a;
+        text-decoration: line-through;
+      }
+      #scene6 .transform-text .tt-arrow {
+        font-size: 40px;
+        color: #ffb52e;
+        margin: 0 16px;
+      }
+      #scene6 .transform-text .tt-new {
+        font-family: "Noto Serif CJK SC", serif;
+        font-size: 52px;
+        font-weight: 900;
+        color: #ffd870;
+      }
+      #scene6 .s6-quote {
+        bottom: 380px;
+        font-size: 46px;
+        color: #f2ede0;
+      }
+      #scene6 .s6-quote .protect {
+        color: #ffb52e;
+        font-style: italic;
+      }
+      #scene6 .end-card {
+        position: absolute;
+        bottom: 80px;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        z-index: 22;
+      }
+      #scene6 .end-card .ec-text {
+        font-family: "Noto Serif CJK SC", serif;
+        font-size: 36px;
+        font-weight: 700;
+        color: #6a5a3a;
+        letter-spacing: 0.3em;
+      }
+      #scene6 .end-card .ec-line {
+        width: 200px;
+        height: 3px;
+        background: #4a3a20;
+        margin: 16px auto 0;
+      }
+
+      /* sparkle particles */
+      .particle {
+        position: absolute;
+        border-radius: 50%;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-width="1080"
+      data-height="1920"
+      data-start="0"
+      data-duration="90"
+    >
+      <!-- ============ SCENE 1: DESPAIR ============ -->
+      <div id="scene1" class="scene">
+        <div class="bg-glow" id="s1-glow"></div>
+        <div class="ghost ghost-fei" id="s1-ghost">废</div>
+        <div class="rain-layer" id="s1-rain"></div>
+
+        <div class="ep-tag"><span class="num">第1集</span> · 最废的人</div>
+
+        <div class="phone-card" id="s1-phone">
+          <div class="ph-label">短信 · 系统通知</div>
+          <div class="ph-msg">裁员通知<br />即日生效</div>
+          <div class="ph-time">周一 08:03</div>
+        </div>
+
+        <div class="balance-card" id="s1-balance">
+          <div class="bal-label">银行卡余额</div>
+          <div class="bal-val stat-num">¥23.80</div>
+          <div class="bal-sub">三连暴击 · 失业分手涨租</div>
+        </div>
+
+        <div class="triple-row" id="s1-triple">
+          <div class="triple-cell"><div class="tc-val stat-num">28</div><div class="tc-label">岁</div></div>
+          <div class="triple-cell"><div class="tc-val stat-num">0</div><div class="tc-label">存款</div></div>
+          <div class="triple-cell"><div class="tc-val stat-num">0</div><div class="tc-label">女友</div></div>
+        </div>
+
+        <div class="noodle-bowl" id="s1-bowl"></div>
+
+        <div class="quote-block s1-quote" id="s1-quote">
+          <span class="quote-line">"连个问我饿不饿的人<span class="dim">...</span>"</span>
+        </div>
+
+        <div class="caption-bar">
+          <div class="caption-text" id="cap-1-0"></div>
+          <div class="caption-text" id="cap-1-1"></div>
+          <div class="caption-text" id="cap-1-2"></div>
+        </div>
+      </div>
+
+      <!-- ============ SCENE 2: DECISION ============ -->
+      <div id="scene2" class="scene">
+        <div class="bg-glow" id="s2-glow"></div>
+        <div class="ghost ghost-bo" id="s2-ghost">搏</div>
+
+        <div class="ep-tag"><span class="num">第1集</span> · 最废的人</div>
+
+        <div class="grandpa-card" id="s2-grandpa">
+          <div class="gc-icon">👨‍🍳</div>
+          <div class="gc-title">爷爷 · 厨师</div>
+          <div class="gc-sub">祖传秘制<br />乳鸽手艺</div>
+        </div>
+
+        <div class="price-flow" id="s2-price">
+          <div class="pf-price"><span class="yen">¥</span>28.8</div>
+          <div class="pf-arrow">↓</div>
+          <div class="pf-result">1只乳鸽</div>
+        </div>
+
+        <div class="pigeon-icon" id="s2-pigeon">
+          <svg width="160" height="140" viewBox="0 0 160 140">
+            <ellipse cx="80" cy="80" rx="50" ry="38" fill="#8a7a6a" opacity="0.5"/>
+            <circle cx="80" cy="48" r="22" fill="#9a8a7a" opacity="0.5"/>
+            <circle cx="74" cy="44" r="3" fill="#1a1a1a" opacity="0.6"/>
+            <path d="M80 48 L92 46 L80 52 Z" fill="#d4a020" opacity="0.6"/>
+            <path d="M50 90 Q30 100 40 120" stroke="#6a5a4a" stroke-width="3" fill="none" opacity="0.5"/>
+          </svg>
+        </div>
+
+        <div class="quote-block s2-quote" id="s2-quote">
+          <span class="quote-line">"爷爷，我信你一次！"</span>
+          <span class="quote-line quote-accent">"乳鸽！给我一只乳鸽！"</span>
+        </div>
+
+        <div class="caption-bar">
+          <div class="caption-text" id="cap-2-0"></div>
+          <div class="caption-text" id="cap-2-1"></div>
+          <div class="caption-text" id="cap-2-2"></div>
+        </div>
+      </div>
+
+      <!-- ============ SCENE 3: MYSTERY ============ -->
+      <div id="scene3" class="scene">
+        <div class="bg-glow" id="s3-glow"></div>
+        <div class="ghost ghost-ming" id="s3-ghost">命</div>
+
+        <div class="ep-tag"><span class="num">第1集</span> · 最废的人</div>
+
+        <div class="old-man" id="s3-oldman">
+          <svg class="om-figure" viewBox="0 0 200 280">
+            <ellipse cx="100" cy="60" rx="38" ry="42" fill="#d8d8e0" opacity="0.85"/>
+            <path d="M62 55 Q100 15 138 55 Q135 30 100 22 Q65 30 62 55" fill="#f0f0f5" opacity="0.9"/>
+            <circle cx="88" cy="58" r="3" fill="#2a2a3a" opacity="0.7"/>
+            <circle cx="112" cy="58" r="3" fill="#2a2a3a" opacity="0.7"/>
+            <path d="M90 72 Q100 78 110 72" stroke="#4a4a5a" stroke-width="2" fill="none" opacity="0.6"/>
+            <path d="M55 110 Q40 180 60 270 L140 270 Q160 180 145 110 Z" fill="#3a4a5a" opacity="0.7"/>
+            <path d="M100 110 L100 270" stroke="#5a6a7a" stroke-width="2" opacity="0.4"/>
+          </svg>
+          <div class="om-name">李老 · 神秘人</div>
+        </div>
+
+        <div class="book-card" id="s3-book">
+          <div class="bc-title">天食录</div>
+          <div class="bc-sub">泛黄古籍 · 祖传</div>
+          <div class="bc-time stat-num">子时 · 乳鸽</div>
+        </div>
+
+        <div class="quote-block s3-quote" id="s3-quote">
+          <span class="speaker">— 李老</span>
+          <span class="quote-line">"子时按书做乳鸽。"</span>
+          <span class="quote-line quote-accent">"你的人生，今晚改变。"</span>
+        </div>
+
+        <div class="caption-bar">
+          <div class="caption-text" id="cap-3-0"></div>
+          <div class="caption-text" id="cap-3-1"></div>
+          <div class="caption-text" id="cap-3-2"></div>
+        </div>
+      </div>
+
+      <!-- ============ SCENE 4: DISCOVERY ============ -->
+      <div id="scene4" class="scene">
+        <div class="bg-glow" id="s4-glow"></div>
+        <div class="ghost ghost-cao" id="s4-ghost">草</div>
+
+        <div class="ep-tag"><span class="num">第1集</span> · 最废的人</div>
+
+        <div class="grass-display" id="s4-grass">
+          <svg class="gd-svg" width="200" height="220" viewBox="0 0 200 220">
+            <defs>
+              <linearGradient id="silverGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#e0e8f8" stop-opacity="0.9"/>
+                <stop offset="100%" stop-color="#6a7a9a" stop-opacity="0.5"/>
+              </linearGradient>
+            </defs>
+            <path d="M100 210 Q95 140 80 60 Q78 40 85 30 Q92 50 96 120 Q98 160 100 210" fill="url(#silverGrad)" opacity="0.85"/>
+            <path d="M100 210 Q108 150 125 80 Q130 60 122 48 Q115 68 108 130 Q103 170 100 210" fill="url(#silverGrad)" opacity="0.75"/>
+            <path d="M100 210 Q90 160 70 100 Q65 82 72 72 Q80 92 88 140 Q95 175 100 210" fill="url(#silverGrad)" opacity="0.65"/>
+            <circle cx="85" cy="30" r="4" fill="#e0e8f8" opacity="0.9"/>
+            <circle cx="122" cy="48" r="3" fill="#c8d8f0" opacity="0.8"/>
+            <circle cx="72" cy="72" r="3" fill="#e0e8f8" opacity="0.7"/>
+            <ellipse cx="100" cy="212" rx="30" ry="6" fill="#3a4a2a" opacity="0.6"/>
+          </svg>
+          <div class="gd-name">星辰草</div>
+        </div>
+
+        <div class="match-row" id="s4-match">
+          <div class="mr-item">古籍图案</div>
+          <div class="mr-eq">=</div>
+          <div class="mr-item">眼前此草</div>
+        </div>
+
+        <div class="price-tag" id="s4-price">
+          <span class="pt-label">命运钥匙</span>
+          <span class="stat-num">¥10</span>
+        </div>
+
+        <div class="quote-block s4-quote" id="s4-quote">
+          <span class="quote-line"><span class="silver">"银光！</span>和书上一模一样！"</span>
+          <span class="quote-line quote-accent">"十块钱！这株草我要了！"</span>
+        </div>
+
+        <div class="caption-bar">
+          <div class="caption-text" id="cap-4-0"></div>
+          <div class="caption-text" id="cap-4-1"></div>
+          <div class="caption-text" id="cap-4-2"></div>
+        </div>
+      </div>
+
+      <!-- ============ SCENE 5: CLIMAX ============ -->
+      <div id="scene5" class="scene">
+        <div class="bg-glow" id="s5-glow"></div>
+        <div class="ghost ghost-guang" id="s5-ghost">光</div>
+        <div class="light-column" id="s5-column"></div>
+
+        <div class="ep-tag"><span class="num">第1集</span> · 最废的人</div>
+
+        <div class="pot-display" id="s5-pot">
+          <div class="pd-label">子时 · 油锅翻滚</div>
+          <div class="pd-time stat-num">23:00</div>
+        </div>
+
+        <div class="energy-burst" id="s5-burst">
+          <svg width="500" height="500" viewBox="0 0 500 500">
+            <defs>
+              <radialGradient id="burstGrad">
+                <stop offset="0%" stop-color="#fff8e0" stop-opacity="0.95"/>
+                <stop offset="30%" stop-color="#ffd870" stop-opacity="0.7"/>
+                <stop offset="60%" stop-color="#ffb52e" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#ff8c1a" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <circle cx="250" cy="250" r="240" fill="url(#burstGrad)"/>
+            <g stroke="#ffd870" stroke-width="3" opacity="0.6">
+              <line x1="250" y1="250" x2="250" y2="40"/>
+              <line x1="250" y1="250" x2="420" y2="120"/>
+              <line x1="250" y1="250" x2="460" y2="250"/>
+              <line x1="250" y1="250" x2="420" y2="380"/>
+              <line x1="250" y1="250" x2="250" y2="460"/>
+              <line x1="250" y1="250" x2="80" y2="380"/>
+              <line x1="250" y1="250" x2="40" y2="250"/>
+              <line x1="250" y1="250" x2="80" y2="120"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="alchemy-row" id="s5-alchemy">
+          <div class="ar-cell"><div class="ar-icon">🔥</div><div class="ar-text">油锅</div></div>
+          <div class="ar-cell"><div class="ar-icon">🌿</div><div class="ar-text">星辰草</div></div>
+          <div class="ar-cell"><div class="ar-icon">✨</div><div class="ar-text">金光冲天</div></div>
+        </div>
+
+        <div class="quote-block s5-quote" id="s5-quote">
+          <span class="quote-line"><span class="gold">"金光！</span>真的是金光！"</span>
+          <span class="quote-line quote-accent">"这不是乳鸽，这是仙丹！"</span>
+        </div>
+
+        <div class="caption-bar">
+          <div class="caption-text" id="cap-5-0"></div>
+          <div class="caption-text" id="cap-5-1"></div>
+          <div class="caption-text" id="cap-5-2"></div>
+        </div>
+      </div>
+
+      <!-- ============ SCENE 6: AWAKENING ============ -->
+      <div id="scene6" class="scene">
+        <div class="bg-glow" id="s6-glow"></div>
+        <div class="ghost ghost-qiang" id="s6-ghost">强</div>
+        <div class="aura-rings" id="s6-aura">
+          <svg width="500" height="500" viewBox="0 0 500 500">
+            <defs>
+              <radialGradient id="auraGrad">
+                <stop offset="0%" stop-color="#ffd870" stop-opacity="0"/>
+                <stop offset="60%" stop-color="#ffb52e" stop-opacity="0.15"/>
+                <stop offset="85%" stop-color="#ffb52e" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#ffb52e" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <circle cx="250" cy="250" r="245" fill="url(#auraGrad)"/>
+            <circle cx="250" cy="250" r="200" fill="none" stroke="#ffd870" stroke-width="2" opacity="0.4"/>
+            <circle cx="250" cy="250" r="160" fill="none" stroke="#ffb52e" stroke-width="3" opacity="0.3"/>
+            <circle cx="250" cy="250" r="120" fill="none" stroke="#ffd870" stroke-width="2" opacity="0.5"/>
+          </svg>
+        </div>
+
+        <div class="ep-tag"><span class="num">第1集</span> · 最废的人</div>
+
+        <div class="power-row" id="s6-power">
+          <div class="pr-cell"><div class="pr-icon">💪</div><div class="pr-text">单手举冰箱</div></div>
+          <div class="pr-cell"><div class="pr-icon">👊</div><div class="pr-text">一拳裂洗手台</div></div>
+        </div>
+
+        <div class="transform-text" id="s6-transform">
+          <span class="tt-old">废柴陈小羽</span>
+          <span class="tt-arrow">→</span>
+          <span class="tt-new">乳鸽超人</span>
+        </div>
+
+        <div class="quote-block s6-quote" id="s6-quote">
+          <span class="quote-line">"这力量...是真的！"</span>
+          <span class="quote-line quote-accent">"老子再也不是废柴了！"</span>
+          <span class="quote-line protect">"以后...我要保护一个人。"</span>
+        </div>
+
+        <div class="end-card" id="s6-end">
+          <div class="ec-text">第 1 集 完</div>
+          <div class="ec-line"></div>
+        </div>
+
+        <div class="caption-bar">
+          <div class="caption-text" id="cap-6-0"></div>
+          <div class="caption-text" id="cap-6-1"></div>
+          <div class="caption-text" id="cap-6-2"></div>
+        </div>
+      </div>
+
+      <!-- ============ NARRATION AUDIO (6 scenes) ============ -->
+      <audio id="audio-1" data-start="0" data-duration="15" data-track-index="0" data-volume="1" src="scene1.wav"></audio>
+      <audio id="audio-2" data-start="15" data-duration="15" data-track-index="0" data-volume="1" src="scene2.wav"></audio>
+      <audio id="audio-3" data-start="30" data-duration="15" data-track-index="0" data-volume="1" src="scene3.wav"></audio>
+      <audio id="audio-4" data-start="45" data-duration="15" data-track-index="0" data-volume="1" src="scene4.wav"></audio>
+      <audio id="audio-5" data-start="60" data-duration="15" data-track-index="0" data-volume="1" src="scene5.wav"></audio>
+      <audio id="audio-6" data-start="75" data-duration="15" data-track-index="0" data-volume="1" src="scene6.wav"></audio>
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      /* ===== Seeded PRNG (deterministic) ===== */
+      function mulberry32(seed) {
+        return function () {
+          seed |= 0;
+          seed = (seed + 0x6d2b79f5) | 0;
+          var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+          return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+        };
+      }
+
+      /* ===== Build rain streaks for Scene 1 ===== */
+      (function () {
+        var rain = document.getElementById("s1-rain");
+        var rng = mulberry32(42);
+        for (var i = 0; i < 40; i++) {
+          var s = document.createElement("div");
+          s.className = "rain-streak";
+          s.style.left = rng() * 1080 + "px";
+          s.style.height = 60 + rng() * 80 + "px";
+          s.style.opacity = 0.2 + rng() * 0.3;
+          rain.appendChild(s);
+        }
+      })();
+
+      /* ===== Caption data: [sceneIndex, groupIndex, textHTML, startInScene, duration] ===== */
+      var CAPTIONS = [
+        // Scene 1
+        [1, 0, '二十八岁 没工作 没存款 <span class="hl-red">没女友</span>', 0.5, 3.5],
+        [1, 1, '银行卡只剩 <span class="hl-red">二十三块八</span>', 4.0, 3.5],
+        [1, 2, '深夜独自煮泡面 <span class="hl">孤独如潮水</span>', 7.7, 5.0],
+        // Scene 2
+        [2, 0, '想起做厨师的爷爷 <span class="hl">祖传乳鸽</span>', 0.5, 3.8],
+        [2, 1, '二十八块八 能买什么？', 4.3, 3.5],
+        [2, 2, '<span class="hl">一只乳鸽！</span> 命运从此反转', 7.8, 5.0],
+        // Scene 3
+        [3, 0, '白发老头 精准说出三天遭遇', 0.5, 3.8],
+        [3, 1, '泛黄古籍 <span class="hl-silver">天食录</span>', 4.3, 3.5],
+        [3, 2, '<span class="hl">子时做乳鸽 人生今晚改变</span>', 7.8, 5.0],
+        // Scene 4
+        [4, 0, '草药摊角落 <span class="hl-silver">银光流转</span>', 0.5, 3.5],
+        [4, 1, '古籍图案 和这株草 <span class="hl">一模一样</span>', 4.0, 3.8],
+        [4, 2, '十块钱！<span class="hl">命运的钥匙</span>', 7.8, 5.0],
+        // Scene 5
+        [5, 0, '子时油锅翻滚 星辰草入锅', 0.5, 3.5],
+        [5, 1, '<span class="hl">金银光芒 冲天而起</span>', 4.0, 3.8],
+        [5, 2, '这不是乳鸽 <span class="hl">这是仙丹！</span>', 7.8, 5.0],
+        // Scene 6
+        [6, 0, '一口咬下 热流炸开 <span class="hl">脱胎换骨</span>', 0.5, 4.0],
+        [6, 1, '单手举冰箱 一拳裂洗手台', 4.5, 3.5],
+        [6, 2, '<span class="hl">再也不是废柴</span> 要保护一个人', 8.0, 5.0],
+      ];
+
+      /* Scene base times */
+      var SCENE_STARTS = [0, 15, 30, 45, 60, 75];
+
+      /* ===== Set caption text content ===== */
+      CAPTIONS.forEach(function (c) {
+        var el = document.getElementById("cap-" + c[0] + "-" + c[1]);
+        if (el) el.innerHTML = c[2];
+      });
+
+      /* ===== Caption timeline (all scenes) ===== */
+      CAPTIONS.forEach(function (c) {
+        var sceneIdx = c[0];
+        var groupIdx = c[1];
+        var absStart = SCENE_STARTS[sceneIdx - 1] + c[3];
+        var dur = c[4];
+        var el = document.getElementById("cap-" + sceneIdx + "-" + groupIdx);
+        if (!el) return;
+        // entrance
+        tl.fromTo(
+          el,
+          { opacity: 0, y: 30, visibility: "visible" },
+          { opacity: 1, y: 0, duration: 0.3, ease: "power2.out" },
+          absStart
+        );
+        // exit + hard kill
+        tl.to(el, { opacity: 0, y: -15, duration: 0.2, ease: "power2.in" }, absStart + dur - 0.2);
+        tl.set(el, { opacity: 0, visibility: "hidden" }, absStart + dur);
+      });
+
+      /* ============ SCENE 1 ANIMATIONS (0-15s) ============ */
+      tl.fromTo("#s1-ghost", { opacity: 0, scale: 1.1 }, { opacity: 1, scale: 1, duration: 1.2, ease: "sine.out" }, 0.2);
+      tl.fromTo(".ep-tag", { x: -40, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: "power3.out" }, 0.3);
+      tl.fromTo("#s1-phone", { x: -60, opacity: 0, rotation: -3 }, { x: 0, opacity: 1, rotation: 0, duration: 0.6, ease: "back.out(1.3)" }, 0.6);
+      tl.fromTo("#s1-balance", { x: 60, opacity: 0, rotation: 3 }, { x: 0, opacity: 1, rotation: 0, duration: 0.6, ease: "back.out(1.3)" }, 0.8);
+      tl.fromTo("#s1-triple .triple-cell", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.5, stagger: 0.12, ease: "power2.out" }, 1.2);
+      tl.fromTo("#s1-bowl", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.7, ease: "elastic.out(0.8, 0.5)" }, 1.6);
+      tl.fromTo("#s1-quote", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, 2.0);
+      // ambient: ghost breath + glow pulse + rain fall
+      tl.to("#s1-ghost", { scale: 1.04, duration: 4, ease: "sine.inOut", yoyo: true, repeat: 2 }, 1.5);
+      tl.to("#s1-glow", { scale: 1.08, opacity: 0.8, duration: 3.5, ease: "sine.inOut", yoyo: true, repeat: 2 }, 0.5);
+      // rain falling loop (finite)
+      tl.to(".rain-streak", { y: 2100, duration: 1.2, ease: "none", stagger: { each: 0.04, from: "random" }, repeat: 11 }, 0);
+
+      /* ============ TRANSITION 1→2: blur crossfade (14.3s) ============ */
+      var T1 = 14.3;
+      tl.to("#scene1", { filter: "blur(12px)", scale: 1.04, opacity: 0, duration: 0.6, ease: "power2.inOut" }, T1);
+      tl.fromTo("#scene2", { filter: "blur(12px)", scale: 0.97, opacity: 0 }, { filter: "blur(0px)", scale: 1, opacity: 1, duration: 0.6, ease: "power2.inOut" }, T1 + 0.1);
+
+      /* ============ SCENE 2 ANIMATIONS (15-30s) ============ */
+      var S2 = 15.2;
+      tl.fromTo("#s2-ghost", { opacity: 0, scale: 1.1 }, { opacity: 1, scale: 1, duration: 1.0, ease: "sine.out" }, S2);
+      tl.fromTo("#s2-grandpa", { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.6, ease: "back.out(1.4)" }, S2 + 0.3);
+      tl.fromTo("#s2-price .pf-price", { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(2)" }, S2 + 0.5);
+      tl.fromTo("#s2-price .pf-arrow", { y: -20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, S2 + 0.9);
+      tl.fromTo("#s2-price .pf-result", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "elastic.out(0.7, 0.4)" }, S2 + 1.1);
+      tl.fromTo("#s2-pigeon", { scale: 0.4, opacity: 0, rotation: -10 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.6, ease: "back.out(1.5)" }, S2 + 1.4);
+      tl.fromTo("#s2-quote", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, S2 + 1.8);
+      // ambient
+      tl.to("#s2-glow", { scale: 1.1, opacity: 0.8, duration: 3, ease: "sine.inOut", yoyo: true, repeat: 3 }, S2 + 0.5);
+      tl.to("#s2-ghost", { scale: 1.05, duration: 3.5, ease: "sine.inOut", yoyo: true, repeat: 2 }, S2 + 1);
+      tl.to("#s2-pigeon", { y: -8, duration: 2, ease: "sine.inOut", yoyo: true, repeat: 5 }, S2 + 1.5);
+
+      /* ============ TRANSITION 2→3: focus pull (29.3s) ============ */
+      var T2 = 29.3;
+      tl.to("#scene2", { filter: "blur(15px)", duration: 0.4, ease: "power1.in" }, T2);
+      tl.to("#scene2", { opacity: 0, duration: 0.3, ease: "power2.in" }, T2 + 0.3);
+      tl.fromTo("#scene3", { opacity: 0, filter: "blur(15px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.5, ease: "power1.out" }, T2 + 0.35);
+
+      /* ============ SCENE 3 ANIMATIONS (30-45s) ============ */
+      var S3 = 30.2;
+      tl.fromTo("#s3-ghost", { opacity: 0, scale: 1.1 }, { opacity: 1, scale: 1, duration: 1.2, ease: "sine.out" }, S3);
+      tl.fromTo("#s3-oldman", { x: -80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, S3 + 0.3);
+      tl.fromTo("#s3-oldman .om-figure", { scale: 0.7, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.7, ease: "back.out(1.2)" }, S3 + 0.4);
+      tl.fromTo("#s3-book", { x: 80, opacity: 0, rotationY: 15 }, { x: 0, opacity: 1, rotationY: 0, duration: 0.7, ease: "power3.out" }, S3 + 0.6);
+      tl.fromTo("#s3-book .bc-title", { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "back.out(2)" }, S3 + 0.9);
+      tl.fromTo("#s3-book .bc-time", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, S3 + 1.2);
+      tl.fromTo("#s3-quote", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, S3 + 1.5);
+      // ambient: mysterious pulse
+      tl.to("#s3-glow", { scale: 1.12, opacity: 0.7, duration: 3, ease: "sine.inOut", yoyo: true, repeat: 3 }, S3 + 0.5);
+      tl.to("#s3-ghost", { scale: 1.06, duration: 4, ease: "sine.inOut", yoyo: true, repeat: 2 }, S3 + 1);
+      tl.to("#s3-book", { boxShadow: "0 0 80px rgba(122,184,122,0.3), 0 24px 60px rgba(0,0,0,0.5)", duration: 2, ease: "sine.inOut", yoyo: true, repeat: 4 }, S3 + 1.5);
+
+      /* ============ TRANSITION 3→4: color dip to silver (44.3s) ============ */
+      var T3 = 44.3;
+      tl.to("#scene3", { opacity: 0, duration: 0.25, ease: "power2.in" }, T3);
+      tl.fromTo("#scene4", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.out" }, T3 + 0.25);
+
+      /* ============ SCENE 4 ANIMATIONS (45-60s) ============ */
+      var S4 = 45.2;
+      tl.fromTo("#s4-ghost", { opacity: 0, scale: 1.1 }, { opacity: 1, scale: 1, duration: 1.0, ease: "sine.out" }, S4);
+      tl.fromTo("#s4-grass", { scale: 0.4, opacity: 0, rotation: -8 }, { scale: 1, opacity: 1, rotation: 0, duration: 0.8, ease: "elastic.out(0.7, 0.5)" }, S4 + 0.3);
+      tl.fromTo("#s4-grass .gd-name", { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, S4 + 0.8);
+      tl.fromTo("#s4-match .mr-item", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, stagger: 0.2, ease: "back.out(1.5)" }, S4 + 1.2);
+      tl.fromTo("#s4-match .mr-eq", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "back.out(2)" }, S4 + 1.5);
+      tl.fromTo("#s4-price", { scale: 0.5, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "elastic.out(0.8, 0.4)" }, S4 + 1.8);
+      tl.fromTo("#s4-quote", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: "power3.out" }, S4 + 2.1);
+      // ambient: silver glow pulse + grass sway
+      tl.to("#s4-glow", { scale: 1.15, opacity: 0.8, duration: 2.5, ease: "sine.inOut", yoyo: true, repeat: 4 }, S4 + 0.5);
+      tl.to("#s4-grass .gd-svg", { rotation: 3, duration: 2, ease: "sine.inOut", yoyo: true, repeat: 5, transformOrigin: "50% 100%" }, S4 + 1);
+      tl.to("#s4-ghost", { scale: 1.05, duration: 3, ease: "sine.inOut", yoyo: true, repeat: 3 }, S4 + 1);
+
+      /* ============ TRANSITION 4→5: overexposure burn (59.2s) ============ */
+      var T4 = 59.2;
+      tl.to("#scene4", { filter: "brightness(2.5)", opacity: 0.3, duration: 0.25, ease: "power2.in" }, T4);
+      tl.to("#scene4", { opacity: 0, duration: 0.2, ease: "none" }, T4 + 0.25);
+      tl.fromTo("#scene5", { opacity: 0, filter: "brightness(2)" }, { opacity: 1, filter: "brightness(1)", duration: 0.5, ease: "power2.out" }, T4 + 0.3);
+
+      /* ============ SCENE 5 ANIMATIONS (60-75s) — CLIMAX ============ */
+      var S5 = 60.3;
+      tl.fromTo("#s5-ghost", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.8, ease: "expo.out" }, S5);
+      tl.fromTo("#s5-column", { scaleY: 0, opacity: 0, transformOrigin: "bottom" }, { scaleY: 1, opacity: 1, duration: 0.6, ease: "expo.out" }, S5 + 0.2);
+      tl.fromTo("#s5-pot", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power2.out" }, S5 + 0.3);
+      tl.fromTo("#s5-burst", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: "expo.out" }, S5 + 0.7);
+      tl.fromTo("#s5-burst svg g line", { opacity: 0, scale: 0, transformOrigin: "250px 250px" }, { opacity: 0.6, scale: 1, duration: 0.3, stagger: 0.04, ease: "expo.out" }, S5 + 0.8);
+      tl.fromTo("#s5-alchemy .ar-cell", { y: 40, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, stagger: 0.12, ease: "back.out(1.4)" }, S5 + 1.2);
+      tl.fromTo("#s5-quote", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" }, S5 + 1.6);
+      // ambient: intense pulsing
+      tl.to("#s5-glow", { scale: 1.15, opacity: 0.9, duration: 1.5, ease: "sine.inOut", yoyo: true, repeat: 7 }, S5 + 0.5);
+      tl.to("#s5-burst", { rotation: 30, duration: 4, ease: "none" }, S5 + 0.7);
+      tl.to("#s5-column", { opacity: 0.7, duration: 1.2, ease: "sine.inOut", yoyo: true, repeat: 9 }, S5 + 0.8);
+      tl.to("#s5-ghost", { scale: 1.08, duration: 2, ease: "sine.inOut", yoyo: true, repeat: 5 }, S5 + 1);
+
+      /* ============ TRANSITION 5→6: light leak (74.3s) ============ */
+      var T5 = 74.3;
+      tl.to("#scene5", { filter: "brightness(1.8) blur(8px)", opacity: 0, duration: 0.5, ease: "power2.inOut" }, T5);
+      tl.fromTo("#scene6", { opacity: 0, filter: "brightness(1.5)" }, { opacity: 1, filter: "brightness(1)", duration: 0.5, ease: "power2.out" }, T5 + 0.3);
+
+      /* ============ SCENE 6 ANIMATIONS (75-90s) — AWAKENING ============ */
+      var S6 = 75.4;
+      tl.fromTo("#s6-ghost", { opacity: 0, scale: 1.15 }, { opacity: 1, scale: 1, duration: 1.0, ease: "expo.out" }, S6);
+      tl.fromTo("#s6-aura", { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.8, ease: "expo.out" }, S6 + 0.2);
+      tl.fromTo("#s6-power .pr-cell", { y: 50, opacity: 0, scale: 0.8 }, { y: 0, opacity: 1, scale: 1, duration: 0.5, stagger: 0.15, ease: "back.out(1.6)" }, S6 + 0.5);
+      tl.fromTo("#s6-transform .tt-old", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.5, ease: "power2.out" }, S6 + 1.0);
+      tl.fromTo("#s6-transform .tt-arrow", { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, S6 + 1.4);
+      tl.fromTo("#s6-transform .tt-new", { opacity: 0, x: 30, scale: 0.8 }, { opacity: 1, x: 0, scale: 1, duration: 0.6, ease: "expo.out" }, S6 + 1.5);
+      tl.fromTo("#s6-quote", { y: 50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" }, S6 + 2.0);
+      tl.fromTo("#s6-end", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, ease: "power2.out" }, S6 + 3.5);
+      // ambient: power aura rotation + pulse
+      tl.to("#s6-aura svg", { rotation: 360, duration: 8, ease: "none" }, S6 + 0.5);
+      tl.to("#s6-glow", { scale: 1.12, opacity: 0.85, duration: 2.5, ease: "sine.inOut", yoyo: true, repeat: 4 }, S6 + 0.5);
+      tl.to("#s6-ghost", { scale: 1.06, duration: 3, ease: "sine.inOut", yoyo: true, repeat: 3 }, S6 + 1);
+      // FINAL scene: fade out end card at the very end
+      tl.to("#scene6", { opacity: 0, duration: 0.6, ease: "power2.in" }, 89.2);
+
+      window.__timelines["main"] = tl;
+    </script>
+  </body>
+</html>
